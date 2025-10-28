@@ -1,0 +1,26 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "turbo run build --color",
+    "ci:prepare": "turbo run ci:prepare",
+    "clean": "find . -name 'node_modules' -type d -prune -exec rm -rf '{}' +",
+    "dev": "turbo run dev --color",
+    "format": "prettier -w .",
+    "lint": "prettier -c . && turbo run lint",
+    "lint:fix": "turbo run lint:fix",
+    "reset-node-modules": "rm -f pnpm-lock.yaml && pnpm -w run clean && pnpm install",
+    "test": "turbo run test"
+  },
+  "devDependencies": {
+    "@stzhu/prettier-plugin-tsconfig": "^0.6.1",
+    "prettier": "^3.6.2",
+    "prettier-plugin-packagejson": "^2.5.19",
+    "turbo": "^2.5.6"
+  },
+  "packageManager": "pnpm@10.19.0",
+  "engines": {
+    "node": ">=22",
+    "pnpm": "^10.0.0"
+  }
+}

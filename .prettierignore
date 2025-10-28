@@ -1,0 +1,12 @@
+pnpm-lock.yaml
+
+dist/
+out/
+.wrangler/
+.vite/
+
+# generated files
+migrations/
+_generated/
+*.gen.ts
+*.gen.d.ts
