@@ -1,0 +1,56 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+node_modules
+
+# testing
+coverage
+
+# build
+dist
+.swc
+out
+
+# misc
+.DS_Store
+
+# debug
+*.log
+
+# local env files
+.env*
+!.env*.example
+
+# turbo
+.turbo
+
+# vscode
+.vscode/launch.json
+
+# storybook
+*storybook.log
+
+# Cloudflare
+.wrangler
+.dev.vars
+worker-configuration.gen.d.ts
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# TanStack
+.tanstack/
