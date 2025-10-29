@@ -1,7 +1,8 @@
 'use client';
 
-import { Button, buttonVariants } from '@workspace/shadcn/components/button';
+import { Button } from '@workspace/shadcn/components/button';
 import { cn } from '@workspace/shadcn/lib/utils';
+import { buttonVariants } from '@workspace/shadcn/variants/button';
 import {
   ChevronDownIcon,
   ChevronLeftIcon,
@@ -189,6 +190,7 @@ function CalendarDayButton({
   const ref = React.useRef<HTMLButtonElement>(null);
   React.useEffect(() => {
     if (modifiers['focused']) ref.current?.focus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [modifiers['focused']]);
 
   return (

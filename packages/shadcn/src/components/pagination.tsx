@@ -1,5 +1,6 @@
-import { Button, buttonVariants } from '@workspace/shadcn/components/button';
+import { Button } from '@workspace/shadcn/components/button';
 import { cn } from '@workspace/shadcn/lib/utils';
+import { buttonVariants } from '@workspace/shadcn/variants/button';
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
