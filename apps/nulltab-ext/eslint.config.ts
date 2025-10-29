@@ -1,6 +1,7 @@
 import { resolve } from 'node:path';
 
-import reactConfig from '@stzhu/eslint-config/react';
+import react from '@stzhu/eslint-config/react';
+import tailwind from '@stzhu/eslint-config/tailwind';
 import { defineConfig, globalIgnores } from 'eslint/config';
 
 export default defineConfig(
@@ -10,7 +11,15 @@ export default defineConfig(
       parserOptions: { tsconfigRootDir: import.meta.dirname },
     },
   },
-  reactConfig.configs.recommended,
+  react.configs.recommended,
+  tailwind.configs.recommended,
+  {
+    settings: {
+      'better-tailwindcss': {
+        entryPoint: 'entrypoints/popup/main.css',
+      },
+    },
+  },
   {
     settings: {
       'import/resolver': {
