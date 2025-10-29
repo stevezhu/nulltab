@@ -8,7 +8,10 @@ catalog:
   '@storybook/addon-docs': ^10.0.0
   '@storybook/addon-onboarding': ^10.0.0
   '@storybook/react-vite': ^10.0.0
-  '@types/node': ^24.7.0
+  '@stzhu/eslint-config': ^0.9.0
+  '@stzhu/prettier-plugin-tsconfig': ^0.7.0
+  '@stzhu/tsconfig': ^0.1.0
+  '@types/node': ^24.9.2
   '@types/react': ^19.2.0
   '@types/react-dom': ^19.2.0
   electron: ^39.0.0
@@ -25,7 +28,7 @@ catalogs:
   expo:
     '@types/react': ~19.1.0
     '@types/react-dom': ~19.1.0
-    expo: ~54.0.20
+    expo: ~54.0.21
     react: 19.1.0
     react-dom: 19.1.0
     react-native: 0.81.5
