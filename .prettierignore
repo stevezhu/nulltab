@@ -2,8 +2,10 @@ pnpm-lock.yaml
 
 dist/
 out/
-.wrangler/
 .vite/
+.wrangler/
+.wxt/
+.output/
 
 # generated files
 migrations/
