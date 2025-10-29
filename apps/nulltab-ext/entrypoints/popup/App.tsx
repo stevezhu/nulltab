@@ -1,5 +1,3 @@
-import './App.css';
-
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { browser } from 'wxt/browser';
@@ -66,24 +64,36 @@ export default function App() {
   };
 
   return (
-    <div className="app-container">
-      <h1>Tab Manager</h1>
-      <div className="windows-container">
+    <div className="max-h-[600px] w-[600px] overflow-y-auto p-4">
+      <h1 className="mb-4 text-left text-2xl font-semibold">Tab Manager</h1>
+      <div className="flex flex-col gap-6">
         {windowsQuery.data.map((window: Window) => {
           const windowId = window.id;
           if (typeof windowId !== 'number') return null;
 
           const tabs = tabsByWindow[windowId] ?? [];
           return (
-            <div key={windowId} className="window-section">
-              <div className="window-header">
-                <h2>
+            <div
+              key={windowId}
+              className={`
+                overflow-hidden rounded-lg border border-border bg-card/50
+              `}
+            >
+              <div
+                className={`
+                  flex items-center justify-between border-b border-border
+                  bg-muted/50 px-4 py-3
+                `}
+              >
+                <h2 className="text-base font-semibold">
                   Window {windowId}
                   {window.focused === true ? ' (Current)' : ''}
                 </h2>
-                <span className="tab-count">{tabs.length} tabs</span>
+                <span className="text-sm text-muted-foreground">
+                  {tabs.length} tabs
+                </span>
               </div>
-              <div className="tabs-list">
+              <div className="flex flex-col">
                 {tabs.map((tab: Tab) => {
                   const tabId = tab.id;
                   if (typeof tabId !== 'number') return null;
@@ -92,8 +102,18 @@ export default function App() {
                     <div
                       key={tabId}
                       className={`
-                        tab-item
-                        ${tab.active === true ? 'active' : ''}
+                        flex cursor-pointer items-center gap-3 border-b
+                        border-border/50 px-4 py-3 transition-colors
+                        last:border-b-0
+                        hover:bg-accent/10
+                        ${
+                          tab.active === true
+                            ? `
+                              border-l-4 border-l-primary bg-primary/10
+                              pl-[calc(1rem-4px)]
+                            `
+                            : ''
+                        }
                       `}
                       onClick={() => {
                         void handleTabClick(tabId);
@@ -103,17 +123,19 @@ export default function App() {
                         <img
                           src={tab.favIconUrl}
                           alt=""
-                          className="tab-favicon"
+                          className="h-4 w-4 shrink-0"
                           onError={(e) => {
                             e.currentTarget.style.display = 'none';
                           }}
                         />
                       )}
-                      <div className="tab-info">
-                        <div className="tab-title">
+                      <div className="min-w-0 flex-1 text-left">
+                        <div className="truncate text-sm font-medium">
                           {tab.title || 'Untitled'}
                         </div>
-                        <div className="tab-url">{getHostname(tab.url)}</div>
+                        <div className="truncate text-xs text-muted-foreground">
+                          {getHostname(tab.url)}
+                        </div>
                       </div>
                     </div>
                   );
