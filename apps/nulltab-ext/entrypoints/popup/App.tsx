@@ -1,4 +1,5 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
+import { cn } from '@workspace/shadcn/lib/utils';
 import { useMemo } from 'react';
 import { browser } from 'wxt/browser';
 
@@ -18,6 +19,15 @@ interface Window {
 
 interface TabsByWindow {
   [windowId: number]: Tab[];
+}
+
+function getHostname(url: string | undefined): string {
+  if (!url) return '';
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return '';
+  }
 }
 
 export default function App() {
@@ -52,15 +62,6 @@ export default function App() {
 
   const handleTabClick = async (tabId: number) => {
     await browser.tabs.update(tabId, { active: true });
-  };
-
-  const getHostname = (url: string | undefined): string => {
-    if (!url) return '';
-    try {
-      return new URL(url).hostname;
-    } catch {
-      return '';
-    }
   };
 
   return (
@@ -101,20 +102,19 @@ export default function App() {
                   return (
                     <div
                       key={tabId}
-                      className={`
-                        flex cursor-pointer items-center gap-3 border-b
-                        border-border/50 px-4 py-3 transition-colors
-                        last:border-b-0
-                        hover:bg-accent/10
-                        ${
-                          tab.active === true
-                            ? `
-                              border-l-4 border-l-primary bg-primary/10
-                              pl-[calc(1rem-4px)]
-                            `
-                            : ''
-                        }
-                      `}
+                      className={cn(
+                        `
+                          flex cursor-pointer items-center gap-3 border-b
+                          border-border px-4 py-3 transition-colors
+                          last:border-b-0
+                          hover:bg-blue-50
+                        `,
+                        tab.active &&
+                          `
+                            border-l-4 border-l-blue-500 bg-blue-100
+                            pl-[calc(1rem-4px)]
+                          `,
+                      )}
                       onClick={() => {
                         void handleTabClick(tabId);
                       }}
