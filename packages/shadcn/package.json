@@ -62,8 +62,8 @@
     "zod": "^4.1.11"
   },
   "devDependencies": {
-    "@stzhu/eslint-config": "^0.8.1",
-    "@stzhu/tsconfig": "^0.1.0",
+    "@stzhu/eslint-config": "catalog:",
+    "@stzhu/tsconfig": "catalog:",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "eslint": "catalog:",

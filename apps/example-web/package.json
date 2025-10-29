@@ -15,15 +15,15 @@
   "dependencies": {
     "@example/app": "workspace:*",
     "@tanstack/react-query": "^5.90.2",
-    "@tanstack/react-router": "^1.132.47",
+    "@tanstack/react-router": "^1.133.35",
     "@workspace/shadcn": "workspace:*",
     "hono": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:"
   },
   "devDependencies": {
-    "@stzhu/eslint-config": "^0.8.1",
-    "@stzhu/tsconfig": "^0.1.0",
+    "@stzhu/eslint-config": "catalog:",
+    "@stzhu/tsconfig": "catalog:",
     "@tailwindcss/vite": "^4.1.14",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
