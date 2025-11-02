@@ -4,6 +4,9 @@
   "private": true,
   "description": "A new browsing experience that replaces tab chaos with intelligent organization",
   "type": "module",
+  "imports": {
+    "#*": "./src/*"
+  },
   "scripts": {
     "build": "wxt build",
     "build:firefox": "wxt build -b firefox",

@@ -31,19 +31,9 @@ function getHostname(url: string | undefined): string {
 }
 
 export default function App() {
-  const tabsQuery = useSuspenseQuery({
-    queryKey: ['tabs'],
-    queryFn: async () => {
-      return (await browser.tabs.query({})) as Tab[];
-    },
-  });
+  const tabsQuery = useTabsSuspenseQuery();
 
-  const windowsQuery = useSuspenseQuery({
-    queryKey: ['windows'],
-    queryFn: async () => {
-      return (await browser.windows.getAll({})) as Window[];
-    },
-  });
+  const windowsQuery = useWindowsSuspenseQuery();
 
   // Group tabs by window
   const tabsByWindow = useMemo(() => {
@@ -62,10 +52,12 @@ export default function App() {
 
   const handleTabClick = async (tabId: number) => {
     await browser.tabs.update(tabId, { active: true });
+    const tab = await browser.tabs.get(tabId);
+    await browser.windows.update(tab.windowId, { focused: true });
   };
 
   return (
-    <div className="max-h-[600px] w-[600px] overflow-y-auto p-4">
+    <div className="overflow-y-auto p-4">
       <h1 className="mb-4 text-left text-2xl font-semibold">Tab Manager</h1>
       <div className="flex flex-col gap-6">
         {windowsQuery.data.map((window: Window) => {
@@ -96,6 +88,7 @@ export default function App() {
               </div>
               <div className="flex flex-col">
                 {tabs.map((tab: Tab) => {
+                  console.log(tab.favIconUrl);
                   const tabId = tab.id;
                   if (typeof tabId !== 'number') return null;
 
@@ -119,6 +112,7 @@ export default function App() {
                         void handleTabClick(tabId);
                       }}
                     >
+                      {/* TODO: ignore chrome-extension:// urls? they don't seem to be accessible */}
                       {tab.favIconUrl && (
                         <img
                           src={tab.favIconUrl}
@@ -147,4 +141,49 @@ export default function App() {
       </div>
     </div>
   );
+}
+
+function useWindowsSuspenseQuery() {
+  const windowsQuery = useSuspenseQuery({
+    queryKey: ['windows'],
+    queryFn: () => browser.windows.getAll({}),
+  });
+
+  useEffect(() => {
+    const handleRefetch = () => void windowsQuery.refetch();
+
+    browser.windows.onFocusChanged.addListener(handleRefetch);
+    return () => {
+      browser.windows.onFocusChanged.removeListener(handleRefetch);
+    };
+  }, [windowsQuery]);
+
+  return windowsQuery;
+}
+
+function useTabsSuspenseQuery() {
+  const tabsQuery = useSuspenseQuery({
+    queryKey: ['tabs'],
+    queryFn: () => browser.tabs.query({}),
+  });
+
+  useEffect(() => {
+    const handleRefetch = () => void tabsQuery.refetch();
+
+    browser.tabs.onCreated.addListener(handleRefetch);
+    browser.tabs.onUpdated.addListener(handleRefetch);
+    browser.tabs.onRemoved.addListener(handleRefetch);
+    browser.tabs.onMoved.addListener(handleRefetch);
+    browser.tabs.onActivated.addListener(handleRefetch);
+
+    return () => {
+      browser.tabs.onCreated.removeListener(handleRefetch);
+      browser.tabs.onUpdated.removeListener(handleRefetch);
+      browser.tabs.onRemoved.removeListener(handleRefetch);
+      browser.tabs.onMoved.removeListener(handleRefetch);
+      browser.tabs.onActivated.removeListener(handleRefetch);
+    };
+  }, [tabsQuery]);
+
+  return tabsQuery;
 }

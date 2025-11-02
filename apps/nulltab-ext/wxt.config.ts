@@ -7,7 +7,16 @@ export default defineConfig({
     name: 'NullTab',
     description:
       'A new browsing experience that replaces tab chaos with intelligent organization.',
-    permissions: ['tabs', 'tabGroups'],
+    permissions: ['sidePanel', 'tabs', 'tabGroups'],
+    commands: {
+      _execute_action: {
+        suggested_key: {
+          default: 'Ctrl+Shift+Y',
+          mac: 'Command+Shift+Y',
+        },
+        description: 'Open NullTab popup',
+      },
+    },
   },
   modules: ['@wxt-dev/module-react'],
   vite: () => ({
