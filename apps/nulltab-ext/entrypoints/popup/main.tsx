@@ -14,7 +14,7 @@ const queryClient = new QueryClient();
 createRoot(rootEl).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <App />
+      <App isPopup />
     </QueryClientProvider>
   </StrictMode>,
 );

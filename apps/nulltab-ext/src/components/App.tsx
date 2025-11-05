@@ -1,5 +1,7 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
+import { Button } from '@workspace/shadcn/components/button';
 import { cn } from '@workspace/shadcn/lib/utils';
+import { XIcon } from 'lucide-react';
 import { useMemo } from 'react';
 import { browser } from 'wxt/browser';
 
@@ -30,7 +32,7 @@ function getHostname(url: string | undefined): string {
   }
 }
 
-export default function App() {
+export default function App({ isPopup }: { isPopup?: boolean }) {
   const tabsQuery = useTabsSuspenseQuery();
 
   const windowsQuery = useWindowsSuspenseQuery();
@@ -58,7 +60,20 @@ export default function App() {
 
   return (
     <div className="overflow-y-auto p-4">
-      <h1 className="mb-4 text-left text-2xl font-semibold">Tab Manager</h1>
+      <h1 className="mb-4 text-2xl font-semibold">Tab Manager</h1>
+      {isPopup && (
+        <div className="mb-4">
+          <Button
+            onClick={async () => {
+              const currentWindow = await browser.windows.getCurrent();
+              if (!currentWindow.id) return;
+              await browser.sidePanel.open({ windowId: currentWindow.id });
+            }}
+          >
+            Open side panel
+          </Button>
+        </div>
+      )}
       <div className="flex flex-col gap-6">
         {windowsQuery.data.map((window: Window) => {
           const windowId = window.id;
@@ -85,6 +100,11 @@ export default function App() {
                 <span className="text-sm text-muted-foreground">
                   {tabs.length} tabs
                 </span>
+                <div>
+                  <Button variant="destructive" size="icon">
+                    <XIcon />
+                  </Button>
+                </div>
               </div>
               <div className="flex flex-col">
                 {tabs.map((tab: Tab) => {

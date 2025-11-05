@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@tanstack/react-query": "^5.90.5",
+    "lucide-react": "^0.548.0",
     "react": "catalog:",
     "react-dom": "catalog:"
   },
