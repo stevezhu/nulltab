@@ -1,41 +1,31 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { Button } from '@workspace/shadcn/components/button';
-import { cn } from '@workspace/shadcn/lib/utils';
-import { XIcon } from 'lucide-react';
-import { useMemo } from 'react';
-import { browser } from 'wxt/browser';
+import { RotateCcw, XIcon } from 'lucide-react';
+import { useEffect, useMemo } from 'react';
+import { type Browser, browser } from 'wxt/browser';
 
-interface Tab {
-  id?: number;
-  windowId?: number;
-  title?: string;
-  url?: string;
-  favIconUrl?: string;
-  active?: boolean;
-}
-
-interface Window {
-  id?: number;
-  focused?: boolean;
-}
+import { windowStorage } from '../utils/windowStorage';
+import { WindowCard } from './WindowCard';
 
 interface TabsByWindow {
-  [windowId: number]: Tab[];
-}
-
-function getHostname(url: string | undefined): string {
-  if (!url) return '';
-  try {
-    return new URL(url).hostname;
-  } catch {
-    return '';
-  }
+  [windowId: number]: Browser.tabs.Tab[];
 }
 
 export default function App({ isPopup }: { isPopup?: boolean }) {
   const tabsQuery = useTabsSuspenseQuery();
 
   const windowsQuery = useWindowsSuspenseQuery();
+
+  const currentWindowQuery = useSuspenseQuery({
+    queryKey: ['currentWindow'],
+    queryFn: () => browser.windows.getCurrent(),
+  });
+
+  const closedWindowsQuery = useSuspenseQuery({
+    queryKey: ['closedWindows'],
+    queryFn: () => windowStorage.getClosedWindows(),
+  });
+  const closedWindows = closedWindowsQuery.data;
 
   // Group tabs by window
   const tabsByWindow = useMemo(() => {
@@ -58,6 +48,52 @@ export default function App({ isPopup }: { isPopup?: boolean }) {
     await browser.windows.update(tab.windowId, { focused: true });
   };
 
+  const handleCloseWindow = async (windowId: number) => {
+    // // Get all tabs for the window
+    const tabs = await browser.tabs.query({ windowId });
+
+    // Don't save empty windows
+    if (tabs.length === 0) return;
+
+    // Save window data to storage
+    await windowStorage.saveClosedWindow({
+      originalWindowId: windowId,
+      tabs: tabs.map((tab) => ({
+        title: tab.title,
+        url: tab.url,
+        favIconUrl: tab.favIconUrl,
+      })),
+      closedAt: new Date(),
+    });
+
+    // Close the window
+    await browser.windows.remove(windowId);
+
+    // Update local state
+    await Promise.all([windowsQuery.refetch(), closedWindowsQuery.refetch()]);
+  };
+
+  const handleRestoreWindow = async (closedWindowId: string) => {
+    const closedWindow = closedWindows.find((w) => w.id === closedWindowId);
+    if (!closedWindow) return;
+
+    // Extract URLs from tabs
+    const urls = closedWindow.tabs
+      .map((tab) => tab.url)
+      .filter((url): url is string => typeof url === 'string');
+
+    if (urls.length === 0) return;
+
+    // Create new window with all tabs
+    await browser.windows.create({ url: urls });
+
+    // Remove from storage
+    await windowStorage.removeClosedWindow(closedWindowId);
+
+    // Update local state
+    await Promise.all([windowsQuery.refetch(), closedWindowsQuery.refetch()]);
+  };
+
   return (
     <div className="overflow-y-auto p-4">
       <h1 className="mb-4 text-2xl font-semibold">Tab Manager</h1>
@@ -75,90 +111,73 @@ export default function App({ isPopup }: { isPopup?: boolean }) {
         </div>
       )}
       <div className="flex flex-col gap-6">
-        {windowsQuery.data.map((window: Window) => {
+        {windowsQuery.data.map((window) => {
           const windowId = window.id;
           if (typeof windowId !== 'number') return null;
 
-          const tabs = tabsByWindow[windowId] ?? [];
-          return (
-            <div
-              key={windowId}
-              className={`
-                overflow-hidden rounded-lg border border-border bg-card/50
-              `}
-            >
-              <div
-                className={`
-                  flex items-center justify-between border-b border-border
-                  bg-muted/50 px-4 py-3
-                `}
-              >
-                <h2 className="text-base font-semibold">
-                  Window {windowId}
-                  {window.focused === true ? ' (Current)' : ''}
-                </h2>
-                <span className="text-sm text-muted-foreground">
-                  {tabs.length} tabs
-                </span>
-                <div>
-                  <Button variant="destructive" size="icon">
-                    <XIcon />
-                  </Button>
-                </div>
-              </div>
-              <div className="flex flex-col">
-                {tabs.map((tab: Tab) => {
-                  console.log(tab.favIconUrl);
-                  const tabId = tab.id;
-                  if (typeof tabId !== 'number') return null;
+          const isCurrentWindow = windowId === currentWindowQuery.data.id;
 
-                  return (
-                    <div
-                      key={tabId}
-                      className={cn(
-                        `
-                          flex cursor-pointer items-center gap-3 border-b
-                          border-border px-4 py-3 transition-colors
-                          last:border-b-0
-                          hover:bg-blue-50
-                        `,
-                        tab.active &&
-                          `
-                            border-l-4 border-l-blue-500 bg-blue-100
-                            pl-[calc(1rem-4px)]
-                          `,
-                      )}
-                      onClick={() => {
-                        void handleTabClick(tabId);
-                      }}
-                    >
-                      {/* TODO: ignore chrome-extension:// urls? they don't seem to be accessible */}
-                      {tab.favIconUrl && (
-                        <img
-                          src={tab.favIconUrl}
-                          alt=""
-                          className="h-4 w-4 shrink-0"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                          }}
-                        />
-                      )}
-                      <div className="min-w-0 flex-1 text-left">
-                        <div className="truncate text-sm font-medium">
-                          {tab.title || 'Untitled'}
-                        </div>
-                        <div className="truncate text-xs text-muted-foreground">
-                          {getHostname(tab.url)}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+          const tabs = tabsByWindow[windowId] ?? [];
+          if (tabs.length === 0) return null;
+
+          return (
+            <WindowCard
+              key={windowId}
+              title={`Window ${windowId}${isCurrentWindow ? ' (Current)' : ''}`}
+              tabCount={tabs.length}
+              tabs={tabs}
+              isHighlighted={isCurrentWindow}
+              actionButton={{
+                icon: <XIcon />,
+                variant: 'destructive',
+                onClick: () => {
+                  console.log('windowId', windowId);
+                  void handleCloseWindow(windowId);
+                },
+              }}
+              onTabClick={(index) => {
+                const tabId = tabs[index]?.id;
+                if (typeof tabId === 'number') {
+                  void handleTabClick(tabId);
+                }
+              }}
+            />
           );
         })}
       </div>
+
+      {/* Closed Windows Section */}
+      {closedWindows.length > 0 && (
+        <div className="mt-8">
+          <h2 className="mb-4 text-xl font-semibold text-muted-foreground">
+            Closed Windows ({closedWindows.length})
+          </h2>
+          <div className="flex flex-col gap-6">
+            {closedWindows.map((closedWindow) => {
+              const title = closedWindow.originalWindowId
+                ? `Closed Window (was ${closedWindow.originalWindowId})`
+                : 'Closed Window';
+
+              return (
+                <WindowCard
+                  key={closedWindow.id}
+                  title={title}
+                  tabCount={closedWindow.tabs.length}
+                  tabs={closedWindow.tabs}
+                  isClosed={true}
+                  actionButton={{
+                    icon: <RotateCcw />,
+                    variant: 'default',
+                    onClick: () => {
+                      void handleRestoreWindow(closedWindow.id);
+                    },
+                  }}
+                />
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

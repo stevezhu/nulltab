@@ -7,7 +7,7 @@ export default defineConfig({
     name: 'NullTab',
     description:
       'A new browsing experience that replaces tab chaos with intelligent organization.',
-    permissions: ['sidePanel', 'tabs', 'tabGroups'],
+    permissions: ['sidePanel', 'tabs', 'tabGroups', 'storage'],
     commands: {
       _execute_action: {
         suggested_key: {
