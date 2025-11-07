@@ -1,4 +1,3 @@
-import { Button } from '@workspace/shadcn/components/button';
 import { cn } from '@workspace/shadcn/lib/utils';
 import type { ReactNode } from 'react';
 
@@ -13,11 +12,7 @@ export type WindowCardProps = {
   title: string;
   tabCount: number;
   tabs: TabData[];
-  actionButton: {
-    icon: ReactNode;
-    variant: 'destructive' | 'default';
-    onClick: () => void;
-  };
+  actions?: ReactNode;
   isHighlighted?: boolean;
   isClosed?: boolean;
   onTabClick?: (index: number) => void;
@@ -27,7 +22,7 @@ export function WindowCard({
   title,
   tabCount,
   tabs,
-  actionButton,
+  actions,
   isHighlighted = false,
   isClosed = false,
   onTabClick,
@@ -47,17 +42,11 @@ export function WindowCard({
           px-4 py-3
         `}
       >
-        <h2 className="text-base font-semibold">{title}</h2>
-        <span className="text-sm text-muted-foreground">{tabCount} tabs</span>
-        <div>
-          <Button
-            variant={actionButton.variant}
-            size="icon"
-            onClick={actionButton.onClick}
-          >
-            {actionButton.icon}
-          </Button>
+        <div className="flex items-baseline gap-3">
+          <h2 className="text-base font-semibold">{title}</h2>
+          <span className="text-sm text-muted-foreground">{tabCount} tabs</span>
         </div>
+        {actions && <div className="flex gap-2">{actions}</div>}
       </div>
       <div className="flex flex-col">
         {tabs.map((tab, index) => {

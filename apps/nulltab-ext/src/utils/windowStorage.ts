@@ -28,9 +28,13 @@ export interface WindowStorage {
   saveClosedWindow(window: Omit<ClosedWindow, 'id'>): Promise<ClosedWindow>;
   getClosedWindows(): Promise<ClosedWindow[]>;
   removeClosedWindow(id: string): Promise<void>;
+  saveManagedWindow(windowId: number): Promise<void>;
+  getManagedWindows(): Promise<number[]>;
+  removeManagedWindow(windowId: number): Promise<void>;
 }
 
 const STORAGE_KEY = 'closedWindows';
+const MANAGED_WINDOWS_KEY = 'managedWindows';
 
 export class LocalStorageWindowStorage implements WindowStorage {
   async saveClosedWindow(
@@ -78,6 +82,37 @@ export class LocalStorageWindowStorage implements WindowStorage {
     const updatedWindows = existingWindows.filter((w) => w.id !== id);
 
     await browser.storage.local.set({ [STORAGE_KEY]: updatedWindows });
+  }
+
+  async saveManagedWindow(windowId: number): Promise<void> {
+    const existingManagedWindows = await this.getManagedWindows();
+    if (!existingManagedWindows.includes(windowId)) {
+      const updatedWindows = [...existingManagedWindows, windowId];
+      await browser.storage.local.set({
+        [MANAGED_WINDOWS_KEY]: updatedWindows,
+      });
+    }
+  }
+
+  async getManagedWindows(): Promise<number[]> {
+    const result = await browser.storage.local.get(MANAGED_WINDOWS_KEY);
+    const data: unknown = result[MANAGED_WINDOWS_KEY] ?? [];
+
+    // Validate and filter valid window IDs
+    const validWindowIds = Array.isArray(data)
+      ? data.filter((item): item is number => typeof item === 'number')
+      : [];
+
+    return validWindowIds;
+  }
+
+  async removeManagedWindow(windowId: number): Promise<void> {
+    const existingManagedWindows = await this.getManagedWindows();
+    const updatedWindows = existingManagedWindows.filter(
+      (id) => id !== windowId,
+    );
+
+    await browser.storage.local.set({ [MANAGED_WINDOWS_KEY]: updatedWindows });
   }
 }
 

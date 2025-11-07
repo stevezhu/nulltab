@@ -1,5 +1,6 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { RotateCcw, XIcon } from 'lucide-react';
+import { Button } from '@workspace/shadcn/components/button';
+import { FolderInput, FolderOutput, RotateCcw, XIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { type Browser, browser } from 'wxt/browser';
 
@@ -31,6 +32,15 @@ export default function App({ isPopup }: { isPopup?: boolean }) {
     queryFn: () => windowStorage.getClosedWindows(),
   });
   const closedWindows = closedWindowsQuery.data;
+
+  const managedWindowsQuery = useSuspenseQuery<number[]>({
+    queryKey: ['managedWindows'],
+    queryFn: async () => {
+      const windows = await windowStorage.getManagedWindows();
+      return windows;
+    },
+  });
+  const managedWindowIds = managedWindowsQuery.data;
 
   // Group tabs by window
   const tabsByWindow = useMemo(() => {
@@ -64,7 +74,7 @@ export default function App({ isPopup }: { isPopup?: boolean }) {
   const handleTabClick = (tabId: number) => focusTab(tabId);
 
   const handleCloseWindow = async (windowId: number) => {
-    // // Get all tabs for the window
+    // Get all tabs for the window
     const tabs = await browser.tabs.query({ windowId });
 
     // Don't save empty windows
@@ -81,11 +91,18 @@ export default function App({ isPopup }: { isPopup?: boolean }) {
       closedAt: new Date(),
     });
 
+    // Remove from managed windows if it was managed
+    await windowStorage.removeManagedWindow(windowId);
+
     // Close the window
     await browser.windows.remove(windowId);
 
     // Update local state
-    await Promise.all([windowsQuery.refetch(), closedWindowsQuery.refetch()]);
+    await Promise.all([
+      windowsQuery.refetch(),
+      closedWindowsQuery.refetch(),
+      managedWindowsQuery.refetch(),
+    ]);
   };
 
   const handleRestoreWindow = async (closedWindowId: string) => {
@@ -109,6 +126,56 @@ export default function App({ isPopup }: { isPopup?: boolean }) {
     await Promise.all([windowsQuery.refetch(), closedWindowsQuery.refetch()]);
   };
 
+  const handleManageWindow = async (windowId: number) => {
+    // Get all tabs for the window
+    const tabs = await browser.tabs.query({ windowId });
+    const tabIds = tabs
+      .map((tab) => tab.id)
+      .filter((id): id is number => typeof id === 'number');
+
+    if (tabIds.length === 0) return;
+
+    // Group all tabs in the window
+    const groupId = await browser.tabs.group({
+      tabIds: tabIds as [number, ...number[]],
+    });
+
+    // Collapse the tab group
+    void browser.tabGroups.update(groupId, { collapsed: true });
+
+    // Save window ID to storage
+    await windowStorage.saveManagedWindow(windowId);
+
+    // Update local state
+    await Promise.all([
+      windowsQuery.refetch(),
+      tabsQuery.refetch(),
+      managedWindowsQuery.refetch(),
+    ]);
+  };
+
+  const handleUnmanageWindow = async (windowId: number) => {
+    // Get all tabs for the window
+    const tabs = await browser.tabs.query({ windowId });
+
+    // Ungroup all tabs that are in a group
+    for (const tab of tabs) {
+      if (tab.id && tab.groupId !== -1) {
+        await browser.tabs.ungroup(tab.id);
+      }
+    }
+
+    // Remove window ID from storage
+    await windowStorage.removeManagedWindow(windowId);
+
+    // Update local state
+    await Promise.all([
+      windowsQuery.refetch(),
+      tabsQuery.refetch(),
+      managedWindowsQuery.refetch(),
+    ]);
+  };
+
   const handleOpenSidePanel = openSidePanel;
 
   return (
@@ -125,22 +192,81 @@ export default function App({ isPopup }: { isPopup?: boolean }) {
 
       {/* Content Area */}
       <div className="flex-1 overflow-y-auto p-4">
-        {/* Managed Windows (Placeholder) */}
+        {/* Managed Windows */}
         {filterMode === 'managed' && (
           <div className="flex flex-col gap-6">
-            <div className="py-8 text-center text-muted-foreground">
-              No managed windows yet
-            </div>
+            {windowsQuery.data.some((window) => {
+              const windowId = window.id;
+              if (typeof windowId !== 'number') return false;
+              if (!managedWindowIds.includes(windowId)) return false;
+              const allTabs = tabsByWindow[windowId] ?? [];
+              return getFilteredTabs(allTabs).length > 0;
+            }) ? (
+              windowsQuery.data.map((window) => {
+                const windowId = window.id;
+                if (typeof windowId !== 'number') return null;
+                if (!managedWindowIds.includes(windowId)) return null;
+
+                const isCurrentWindow = windowId === currentWindowQuery.data.id;
+
+                const allTabs = tabsByWindow[windowId] ?? [];
+                const filteredTabs = getFilteredTabs(allTabs);
+                if (filteredTabs.length === 0) return null;
+
+                return (
+                  <WindowCard
+                    key={windowId}
+                    title={`Window ${windowId}${isCurrentWindow ? ' (Current)' : ''}`}
+                    tabCount={filteredTabs.length}
+                    tabs={filteredTabs}
+                    isHighlighted={isCurrentWindow}
+                    actions={
+                      <>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => {
+                            void handleUnmanageWindow(windowId);
+                          }}
+                        >
+                          <FolderOutput />
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          onClick={() => {
+                            void handleCloseWindow(windowId);
+                          }}
+                        >
+                          <XIcon />
+                        </Button>
+                      </>
+                    }
+                    onTabClick={(index) => {
+                      const tabId = filteredTabs[index]?.id;
+                      if (typeof tabId === 'number') {
+                        void handleTabClick(tabId);
+                      }
+                    }}
+                  />
+                );
+              })
+            ) : (
+              <div className="py-8 text-center text-muted-foreground">
+                {searchQuery ? 'No tabs found' : 'No managed windows yet'}
+              </div>
+            )}
           </div>
         )}
 
         {/* Unmanaged Windows (Open Windows + Closed Windows) */}
         {filterMode === 'unmanaged' && (
           <div className="flex flex-col gap-6">
-            {/* Open Windows */}
+            {/* Open Unmanaged Windows */}
             {windowsQuery.data.map((window) => {
               const windowId = window.id;
               if (typeof windowId !== 'number') return null;
+              if (managedWindowIds.includes(windowId)) return null;
 
               const isCurrentWindow = windowId === currentWindowQuery.data.id;
 
@@ -155,14 +281,17 @@ export default function App({ isPopup }: { isPopup?: boolean }) {
                   tabCount={filteredTabs.length}
                   tabs={filteredTabs}
                   isHighlighted={isCurrentWindow}
-                  actionButton={{
-                    icon: <XIcon />,
-                    variant: 'destructive',
-                    onClick: () => {
-                      console.log('windowId', windowId);
-                      void handleCloseWindow(windowId);
-                    },
-                  }}
+                  actions={
+                    <Button
+                      variant="default"
+                      size="icon"
+                      onClick={() => {
+                        void handleManageWindow(windowId);
+                      }}
+                    >
+                      <FolderInput />
+                    </Button>
+                  }
                   onTabClick={(index) => {
                     const tabId = filteredTabs[index]?.id;
                     if (typeof tabId === 'number') {
@@ -189,13 +318,17 @@ export default function App({ isPopup }: { isPopup?: boolean }) {
                   tabCount={filteredTabs.length}
                   tabs={filteredTabs}
                   isClosed={true}
-                  actionButton={{
-                    icon: <RotateCcw />,
-                    variant: 'default',
-                    onClick: () => {
-                      void handleRestoreWindow(closedWindow.id);
-                    },
-                  }}
+                  actions={
+                    <Button
+                      variant="default"
+                      size="icon"
+                      onClick={() => {
+                        void handleRestoreWindow(closedWindow.id);
+                      }}
+                    >
+                      <RotateCcw />
+                    </Button>
+                  }
                 />
               );
             })}
@@ -204,6 +337,7 @@ export default function App({ isPopup }: { isPopup?: boolean }) {
             {windowsQuery.data.every((window) => {
               const windowId = window.id;
               if (typeof windowId !== 'number') return true;
+              if (managedWindowIds.includes(windowId)) return true;
               const allTabs = tabsByWindow[windowId] ?? [];
               return getFilteredTabs(allTabs).length === 0;
             }) &&
