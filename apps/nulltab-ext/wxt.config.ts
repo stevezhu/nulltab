@@ -19,6 +19,13 @@ export default defineConfig({
     },
   },
   modules: ['@wxt-dev/module-react'],
+  react: {
+    vite: {
+      babel: {
+        plugins: ['babel-plugin-react-compiler'],
+      },
+    },
+  },
   vite: () => ({
     plugins: [tailwindcss()],
   }),

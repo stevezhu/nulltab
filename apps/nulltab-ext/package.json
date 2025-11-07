@@ -37,6 +37,7 @@
     "@types/react-dom": "catalog:",
     "@workspace/shadcn": "workspace:*",
     "@wxt-dev/module-react": "^1.1.3",
+    "babel-plugin-react-compiler": "^1.0.0",
     "eslint": "catalog:",
     "eslint-import-resolver-wxt": "workspace:*",
     "tailwindcss": "catalog:",

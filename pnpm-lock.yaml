@@ -171,12 +171,18 @@ importers:
       '@vitejs/plugin-react':
         specifier: ^5.0.3
         version: 5.1.0(vite@7.1.12(@types/node@24.9.2)(jiti@2.6.1)(lightningcss@1.30.1)(terser@5.44.0)(tsx@4.20.6)(yaml@2.8.1))
+      babel-plugin-react-compiler:
+        specifier: ^1.0.0
+        version: 1.0.0
       electron:
         specifier: 'catalog:'
         version: 39.0.0
       electron-builder:
         specifier: ^26.0.0
         version: 26.0.12(electron-builder-squirrel-windows@26.0.12)
+      electron-devtools-installer:
+        specifier: ^4.0.0
+        version: 4.0.0
       electron-vite:
         specifier: ^4.0.1
         version: 4.0.1(patch_hash=868f08ef8fb5330a9cfcb4d06efe627c3bf05d8554a8c9030240bf2099423509)(vite@7.1.12(@types/node@24.9.2)(jiti@2.6.1)(lightningcss@1.30.1)(terser@5.44.0)(tsx@4.20.6)(yaml@2.8.1))
@@ -387,6 +393,9 @@ importers:
       '@vitejs/plugin-react':
         specifier: ^5.0.4
         version: 5.1.0(vite@7.1.12(@types/node@24.9.2)(jiti@2.6.1)(lightningcss@1.30.1)(terser@5.44.0)(tsx@4.20.6)(yaml@2.8.1))
+      babel-plugin-react-compiler:
+        specifier: ^1.0.0
+        version: 1.0.0
       eslint:
         specifier: 'catalog:'
         version: 9.38.0(jiti@2.6.1)
@@ -445,6 +454,9 @@ importers:
       '@wxt-dev/module-react':
         specifier: ^1.1.3
         version: 1.1.5(vite@7.1.12(@types/node@24.9.2)(jiti@2.6.1)(lightningcss@1.30.1)(terser@5.44.0)(tsx@4.20.6)(yaml@2.8.1))(wxt@0.20.11(@types/node@24.9.2)(jiti@2.6.1)(lightningcss@1.30.1)(rollup@4.52.5)(terser@5.44.0)(tsx@4.20.6)(yaml@2.8.1))
+      babel-plugin-react-compiler:
+        specifier: ^1.0.0
+        version: 1.0.0
       eslint:
         specifier: 'catalog:'
         version: 9.38.0(jiti@2.6.1)
@@ -4955,6 +4967,9 @@ packages:
     engines: {node: '>=14.0.0'}
     hasBin: true
 
+  electron-devtools-installer@4.0.0:
+    resolution: {integrity: sha512-9Tntu/jtfSn0n6N/ZI6IdvRqXpDyLQiDuuIbsBI+dL+1Ef7C8J2JwByw58P3TJiNeuqyV3ZkphpNWuZK5iSY2w==}
+
   electron-publish@26.0.11:
     resolution: {integrity: sha512-a8QRH0rAPIWH9WyyS5LbNvW9Ark6qe63/LqDB7vu2JXYpi0Gma5Q60Dh4tmTqhOBQt0xsrzD8qE7C+D7j+B24A==}
 
@@ -8735,6 +8750,9 @@ packages:
   unrs-resolver@1.11.1:
     resolution: {integrity: sha512-bSjt9pjaEBnNiGgc9rUiHGKv5l4/TGzDmYw3RhnkJGtLhbnnA/5qJj7x3dNDCRx/PJxu774LlH8lCOlB4hEfKg==}
 
+  unzip-crx-3@0.2.0:
+    resolution: {integrity: sha512-0+JiUq/z7faJ6oifVB5nSwt589v1KCduqIJupNVDoWSXZtWDmjDGO3RAEOvwJ07w90aoXoP4enKsR7ecMrJtWQ==}
+
   update-browserslist-db@1.1.4:
     resolution: {integrity: sha512-q0SPT4xyU84saUX+tomz1WLkxUbuaJnR1xWt17M7fJtEJigJeWUNGUqrauFXsHnqev9y9JTRGwk13tFBuKby4A==}
     hasBin: true
@@ -9108,6 +9126,9 @@ packages:
   y18n@5.0.8:
     resolution: {integrity: sha512-0pfFzegeDWJHJIAmTLRP2DwHjdF5s7jo9tuztdQxAhINCdvS+3nGINqPd00AphqJR/0LhANUS6/+7SCb98YOfA==}
     engines: {node: '>=10'}
+
+  yaku@0.16.7:
+    resolution: {integrity: sha512-Syu3IB3rZvKvYk7yTiyl1bo/jiEFaaStrgv1V2TIJTqYPStSMQVO8EQjg/z+DRzLq/4LIIharNT3iH1hylEIRw==}
 
   yallist@3.1.1:
     resolution: {integrity: sha512-a4UGQaWPH59mOXUYnAG2ewncQS4i4F43Tv3JoAM+s2VDAmS9NsK8GpDMLrCHPksFT7h3K6TOoUNn2pb7RoXx4g==}
@@ -14176,6 +14197,10 @@ snapshots:
       - electron-builder-squirrel-windows
       - supports-color
 
+  electron-devtools-installer@4.0.0:
+    dependencies:
+      unzip-crx-3: 0.2.0
+
   electron-publish@26.0.11:
     dependencies:
       '@types/fs-extra': 9.0.13
@@ -18770,6 +18795,12 @@ snapshots:
       '@unrs/resolver-binding-win32-ia32-msvc': 1.11.1
       '@unrs/resolver-binding-win32-x64-msvc': 1.11.1
 
+  unzip-crx-3@0.2.0:
+    dependencies:
+      jszip: 3.10.1
+      mkdirp: 0.5.6
+      yaku: 0.16.7
+
   update-browserslist-db@1.1.4(browserslist@4.27.0):
     dependencies:
       browserslist: 4.27.0
@@ -19254,6 +19285,8 @@ snapshots:
   xmlbuilder@15.1.1: {}
 
   y18n@5.0.8: {}
+
+  yaku@0.16.7: {}
 
   yallist@3.1.1: {}
 

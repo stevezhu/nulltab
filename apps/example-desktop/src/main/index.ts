@@ -2,6 +2,10 @@ import { join } from 'node:path';
 
 import { electronApp, is, optimizer } from '@electron-toolkit/utils';
 import { app, BrowserWindow, shell } from 'electron';
+import {
+  installExtension,
+  REACT_DEVELOPER_TOOLS,
+} from 'electron-devtools-installer';
 
 import { setupIpcHandlers } from '#main/ipcHandlers/index.js';
 
@@ -50,6 +54,14 @@ function createWindow(): void {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 void app.whenReady().then(() => {
+  installExtension(REACT_DEVELOPER_TOOLS)
+    .then((ext) => {
+      console.log(`Added Extension:  ${ext.name}`);
+    })
+    .catch((err: unknown) => {
+      console.log('An error occurred: ', err);
+    });
+
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron');
 
