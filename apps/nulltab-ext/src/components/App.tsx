@@ -1,10 +1,13 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { Button } from '@workspace/shadcn/components/button';
 import { RotateCcw, XIcon } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { type Browser, browser } from 'wxt/browser';
 
+import { useTabsQuery } from '#hooks/useTabsQuery.ts';
+import { useWindowsQuery } from '#hooks/useWindowsQuery.ts';
+
 import { windowStorage } from '../utils/windowStorage';
+import TopBar, { type TopBarFilterMode } from './TopBar';
 import { WindowCard } from './WindowCard';
 
 interface TabsByWindow {
@@ -12,9 +15,11 @@ interface TabsByWindow {
 }
 
 export default function App({ isPopup }: { isPopup?: boolean }) {
-  const tabsQuery = useTabsSuspenseQuery();
+  const [filterMode, setFilterMode] = useState<TopBarFilterMode>('managed');
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const windowsQuery = useWindowsSuspenseQuery();
+  const windowsQuery = useWindowsQuery();
+  const tabsQuery = useTabsQuery();
 
   const currentWindowQuery = useSuspenseQuery({
     queryKey: ['currentWindow'],
@@ -41,6 +46,20 @@ export default function App({ isPopup }: { isPopup?: boolean }) {
     });
     return grouped;
   }, [tabsQuery.data]);
+
+  // Filter tabs based on search query
+  const getFilteredTabs = <T extends { title?: string; url?: string }>(
+    tabs: T[],
+  ): T[] => {
+    if (!searchQuery) return tabs;
+
+    const lowerQuery = searchQuery.toLowerCase();
+    return tabs.filter(
+      (tab) =>
+        tab.title?.toLowerCase().includes(lowerQuery) ||
+        tab.url?.toLowerCase().includes(lowerQuery),
+    );
+  };
 
   const handleTabClick = async (tabId: number) => {
     await browser.tabs.update(tabId, { active: true });
@@ -95,134 +114,113 @@ export default function App({ isPopup }: { isPopup?: boolean }) {
   };
 
   return (
-    <div className="overflow-y-auto p-4">
-      <h1 className="mb-4 text-2xl font-semibold">Tab Manager</h1>
-      {isPopup && (
-        <div className="mb-4">
-          <Button
-            onClick={async () => {
-              const currentWindow = await browser.windows.getCurrent();
-              if (!currentWindow.id) return;
-              await browser.sidePanel.open({ windowId: currentWindow.id });
-            }}
-          >
-            Open side panel
-          </Button>
-        </div>
-      )}
-      <div className="flex flex-col gap-6">
-        {windowsQuery.data.map((window) => {
-          const windowId = window.id;
-          if (typeof windowId !== 'number') return null;
+    <div className="flex h-full flex-col">
+      {/* Top Bar */}
+      <TopBar
+        filterMode={filterMode}
+        onFilterChange={setFilterMode}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        showSidePanelButton={isPopup}
+        onOpenSidePanel={openSidePanel}
+      />
 
-          const isCurrentWindow = windowId === currentWindowQuery.data.id;
-
-          const tabs = tabsByWindow[windowId] ?? [];
-          if (tabs.length === 0) return null;
-
-          return (
-            <WindowCard
-              key={windowId}
-              title={`Window ${windowId}${isCurrentWindow ? ' (Current)' : ''}`}
-              tabCount={tabs.length}
-              tabs={tabs}
-              isHighlighted={isCurrentWindow}
-              actionButton={{
-                icon: <XIcon />,
-                variant: 'destructive',
-                onClick: () => {
-                  console.log('windowId', windowId);
-                  void handleCloseWindow(windowId);
-                },
-              }}
-              onTabClick={(index) => {
-                const tabId = tabs[index]?.id;
-                if (typeof tabId === 'number') {
-                  void handleTabClick(tabId);
-                }
-              }}
-            />
-          );
-        })}
-      </div>
-
-      {/* Closed Windows Section */}
-      {closedWindows.length > 0 && (
-        <div className="mt-8">
-          <h2 className="mb-4 text-xl font-semibold text-muted-foreground">
-            Closed Windows ({closedWindows.length})
-          </h2>
+      {/* Content Area */}
+      <div className="flex-1 overflow-y-auto p-4">
+        {/* Managed Windows (Open Windows) */}
+        {filterMode === 'managed' && (
           <div className="flex flex-col gap-6">
-            {closedWindows.map((closedWindow) => {
-              const title = closedWindow.originalWindowId
-                ? `Closed Window (was ${closedWindow.originalWindowId})`
-                : 'Closed Window';
+            {windowsQuery.data.some((window) => {
+              const windowId = window.id;
+              if (typeof windowId !== 'number') return false;
+              const allTabs = tabsByWindow[windowId] ?? [];
+              return getFilteredTabs(allTabs).length > 0;
+            }) ? (
+              windowsQuery.data.map((window) => {
+                const windowId = window.id;
+                if (typeof windowId !== 'number') return null;
 
-              return (
-                <WindowCard
-                  key={closedWindow.id}
-                  title={title}
-                  tabCount={closedWindow.tabs.length}
-                  tabs={closedWindow.tabs}
-                  isClosed={true}
-                  actionButton={{
-                    icon: <RotateCcw />,
-                    variant: 'default',
-                    onClick: () => {
-                      void handleRestoreWindow(closedWindow.id);
-                    },
-                  }}
-                />
-              );
-            })}
+                const isCurrentWindow = windowId === currentWindowQuery.data.id;
+
+                const allTabs = tabsByWindow[windowId] ?? [];
+                const filteredTabs = getFilteredTabs(allTabs);
+                if (filteredTabs.length === 0) return null;
+
+                return (
+                  <WindowCard
+                    key={windowId}
+                    title={`Window ${windowId}${isCurrentWindow ? ' (Current)' : ''}`}
+                    tabCount={filteredTabs.length}
+                    tabs={filteredTabs}
+                    isHighlighted={isCurrentWindow}
+                    actionButton={{
+                      icon: <XIcon />,
+                      variant: 'destructive',
+                      onClick: () => {
+                        console.log('windowId', windowId);
+                        void handleCloseWindow(windowId);
+                      },
+                    }}
+                    onTabClick={(index) => {
+                      const tabId = filteredTabs[index]?.id;
+                      if (typeof tabId === 'number') {
+                        void handleTabClick(tabId);
+                      }
+                    }}
+                  />
+                );
+              })
+            ) : (
+              <div className="py-8 text-center text-muted-foreground">
+                {searchQuery ? 'No tabs found' : 'No open windows'}
+              </div>
+            )}
           </div>
-        </div>
-      )}
+        )}
+
+        {/* Unmanaged Windows (Closed Windows) */}
+        {filterMode === 'unmanaged' && (
+          <div className="flex flex-col gap-6">
+            {closedWindows.some((w) => getFilteredTabs(w.tabs).length > 0) ? (
+              closedWindows.map((closedWindow) => {
+                const filteredTabs = getFilteredTabs(closedWindow.tabs);
+                if (filteredTabs.length === 0) return null;
+
+                const title = closedWindow.originalWindowId
+                  ? `Closed Window (was ${closedWindow.originalWindowId})`
+                  : 'Closed Window';
+
+                return (
+                  <WindowCard
+                    key={closedWindow.id}
+                    title={title}
+                    tabCount={filteredTabs.length}
+                    tabs={filteredTabs}
+                    isClosed={true}
+                    actionButton={{
+                      icon: <RotateCcw />,
+                      variant: 'default',
+                      onClick: () => {
+                        void handleRestoreWindow(closedWindow.id);
+                      },
+                    }}
+                  />
+                );
+              })
+            ) : (
+              <div className="py-8 text-center text-muted-foreground">
+                {searchQuery ? 'No tabs found' : 'No closed windows'}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
-function useWindowsSuspenseQuery() {
-  const windowsQuery = useSuspenseQuery({
-    queryKey: ['windows'],
-    queryFn: () => browser.windows.getAll({}),
-  });
-
-  useEffect(() => {
-    const handleRefetch = () => void windowsQuery.refetch();
-
-    browser.windows.onFocusChanged.addListener(handleRefetch);
-    return () => {
-      browser.windows.onFocusChanged.removeListener(handleRefetch);
-    };
-  }, [windowsQuery]);
-
-  return windowsQuery;
-}
-
-function useTabsSuspenseQuery() {
-  const tabsQuery = useSuspenseQuery({
-    queryKey: ['tabs'],
-    queryFn: () => browser.tabs.query({}),
-  });
-
-  useEffect(() => {
-    const handleRefetch = () => void tabsQuery.refetch();
-
-    browser.tabs.onCreated.addListener(handleRefetch);
-    browser.tabs.onUpdated.addListener(handleRefetch);
-    browser.tabs.onRemoved.addListener(handleRefetch);
-    browser.tabs.onMoved.addListener(handleRefetch);
-    browser.tabs.onActivated.addListener(handleRefetch);
-
-    return () => {
-      browser.tabs.onCreated.removeListener(handleRefetch);
-      browser.tabs.onUpdated.removeListener(handleRefetch);
-      browser.tabs.onRemoved.removeListener(handleRefetch);
-      browser.tabs.onMoved.removeListener(handleRefetch);
-      browser.tabs.onActivated.removeListener(handleRefetch);
-    };
-  }, [tabsQuery]);
-
-  return tabsQuery;
+async function openSidePanel() {
+  const currentWindow = await browser.windows.getCurrent();
+  if (!currentWindow.id) return;
+  await browser.sidePanel.open({ windowId: currentWindow.id });
 }

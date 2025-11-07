@@ -2,14 +2,14 @@ import { Button } from '@workspace/shadcn/components/button';
 import { cn } from '@workspace/shadcn/lib/utils';
 import type { ReactNode } from 'react';
 
-interface TabData {
+type TabData = {
   title?: string;
   url?: string;
   favIconUrl?: string;
   active?: boolean;
-}
+};
 
-interface WindowCardProps {
+export type WindowCardProps = {
   title: string;
   tabCount: number;
   tabs: TabData[];
@@ -21,16 +21,7 @@ interface WindowCardProps {
   isHighlighted?: boolean;
   isClosed?: boolean;
   onTabClick?: (index: number) => void;
-}
-
-function getHostname(url: string | undefined): string {
-  if (!url) return '';
-  try {
-    return new URL(url).hostname;
-  } catch {
-    return '';
-  }
-}
+};
 
 export function WindowCard({
   title,
@@ -120,4 +111,13 @@ export function WindowCard({
       </div>
     </div>
   );
+}
+
+function getHostname(url: string | undefined): string {
+  if (!url) return '';
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return '';
+  }
 }
