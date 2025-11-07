@@ -61,11 +61,7 @@ export default function App({ isPopup }: { isPopup?: boolean }) {
     );
   };
 
-  const handleTabClick = async (tabId: number) => {
-    await browser.tabs.update(tabId, { active: true });
-    const tab = await browser.tabs.get(tabId);
-    await browser.windows.update(tab.windowId, { focused: true });
-  };
+  const handleTabClick = (tabId: number) => focusTab(tabId);
 
   const handleCloseWindow = async (windowId: number) => {
     // // Get all tabs for the window
@@ -113,6 +109,8 @@ export default function App({ isPopup }: { isPopup?: boolean }) {
     await Promise.all([windowsQuery.refetch(), closedWindowsQuery.refetch()]);
   };
 
+  const handleOpenSidePanel = openSidePanel;
+
   return (
     <div className="flex h-full flex-col">
       {/* Top Bar */}
@@ -122,96 +120,100 @@ export default function App({ isPopup }: { isPopup?: boolean }) {
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         showSidePanelButton={isPopup}
-        onOpenSidePanel={openSidePanel}
+        onOpenSidePanel={handleOpenSidePanel}
       />
 
       {/* Content Area */}
       <div className="flex-1 overflow-y-auto p-4">
-        {/* Managed Windows (Open Windows) */}
+        {/* Managed Windows (Placeholder) */}
         {filterMode === 'managed' && (
           <div className="flex flex-col gap-6">
-            {windowsQuery.data.some((window) => {
-              const windowId = window.id;
-              if (typeof windowId !== 'number') return false;
-              const allTabs = tabsByWindow[windowId] ?? [];
-              return getFilteredTabs(allTabs).length > 0;
-            }) ? (
-              windowsQuery.data.map((window) => {
-                const windowId = window.id;
-                if (typeof windowId !== 'number') return null;
-
-                const isCurrentWindow = windowId === currentWindowQuery.data.id;
-
-                const allTabs = tabsByWindow[windowId] ?? [];
-                const filteredTabs = getFilteredTabs(allTabs);
-                if (filteredTabs.length === 0) return null;
-
-                return (
-                  <WindowCard
-                    key={windowId}
-                    title={`Window ${windowId}${isCurrentWindow ? ' (Current)' : ''}`}
-                    tabCount={filteredTabs.length}
-                    tabs={filteredTabs}
-                    isHighlighted={isCurrentWindow}
-                    actionButton={{
-                      icon: <XIcon />,
-                      variant: 'destructive',
-                      onClick: () => {
-                        console.log('windowId', windowId);
-                        void handleCloseWindow(windowId);
-                      },
-                    }}
-                    onTabClick={(index) => {
-                      const tabId = filteredTabs[index]?.id;
-                      if (typeof tabId === 'number') {
-                        void handleTabClick(tabId);
-                      }
-                    }}
-                  />
-                );
-              })
-            ) : (
-              <div className="py-8 text-center text-muted-foreground">
-                {searchQuery ? 'No tabs found' : 'No open windows'}
-              </div>
-            )}
+            <div className="py-8 text-center text-muted-foreground">
+              No managed windows yet
+            </div>
           </div>
         )}
 
-        {/* Unmanaged Windows (Closed Windows) */}
+        {/* Unmanaged Windows (Open Windows + Closed Windows) */}
         {filterMode === 'unmanaged' && (
           <div className="flex flex-col gap-6">
-            {closedWindows.some((w) => getFilteredTabs(w.tabs).length > 0) ? (
-              closedWindows.map((closedWindow) => {
-                const filteredTabs = getFilteredTabs(closedWindow.tabs);
-                if (filteredTabs.length === 0) return null;
+            {/* Open Windows */}
+            {windowsQuery.data.map((window) => {
+              const windowId = window.id;
+              if (typeof windowId !== 'number') return null;
 
-                const title = closedWindow.originalWindowId
-                  ? `Closed Window (was ${closedWindow.originalWindowId})`
-                  : 'Closed Window';
+              const isCurrentWindow = windowId === currentWindowQuery.data.id;
 
-                return (
-                  <WindowCard
-                    key={closedWindow.id}
-                    title={title}
-                    tabCount={filteredTabs.length}
-                    tabs={filteredTabs}
-                    isClosed={true}
-                    actionButton={{
-                      icon: <RotateCcw />,
-                      variant: 'default',
-                      onClick: () => {
-                        void handleRestoreWindow(closedWindow.id);
-                      },
-                    }}
-                  />
-                );
-              })
-            ) : (
-              <div className="py-8 text-center text-muted-foreground">
-                {searchQuery ? 'No tabs found' : 'No closed windows'}
-              </div>
-            )}
+              const allTabs = tabsByWindow[windowId] ?? [];
+              const filteredTabs = getFilteredTabs(allTabs);
+              if (filteredTabs.length === 0) return null;
+
+              return (
+                <WindowCard
+                  key={windowId}
+                  title={`Window ${windowId}${isCurrentWindow ? ' (Current)' : ''}`}
+                  tabCount={filteredTabs.length}
+                  tabs={filteredTabs}
+                  isHighlighted={isCurrentWindow}
+                  actionButton={{
+                    icon: <XIcon />,
+                    variant: 'destructive',
+                    onClick: () => {
+                      console.log('windowId', windowId);
+                      void handleCloseWindow(windowId);
+                    },
+                  }}
+                  onTabClick={(index) => {
+                    const tabId = filteredTabs[index]?.id;
+                    if (typeof tabId === 'number') {
+                      void handleTabClick(tabId);
+                    }
+                  }}
+                />
+              );
+            })}
+
+            {/* Closed Windows */}
+            {closedWindows.map((closedWindow) => {
+              const filteredTabs = getFilteredTabs(closedWindow.tabs);
+              if (filteredTabs.length === 0) return null;
+
+              const title = closedWindow.originalWindowId
+                ? `Closed Window (was ${closedWindow.originalWindowId})`
+                : 'Closed Window';
+
+              return (
+                <WindowCard
+                  key={closedWindow.id}
+                  title={title}
+                  tabCount={filteredTabs.length}
+                  tabs={filteredTabs}
+                  isClosed={true}
+                  actionButton={{
+                    icon: <RotateCcw />,
+                    variant: 'default',
+                    onClick: () => {
+                      void handleRestoreWindow(closedWindow.id);
+                    },
+                  }}
+                />
+              );
+            })}
+
+            {/* Empty state */}
+            {windowsQuery.data.every((window) => {
+              const windowId = window.id;
+              if (typeof windowId !== 'number') return true;
+              const allTabs = tabsByWindow[windowId] ?? [];
+              return getFilteredTabs(allTabs).length === 0;
+            }) &&
+              closedWindows.every(
+                (w) => getFilteredTabs(w.tabs).length === 0,
+              ) && (
+                <div className="py-8 text-center text-muted-foreground">
+                  {searchQuery ? 'No tabs found' : 'No unmanaged windows'}
+                </div>
+              )}
           </div>
         )}
       </div>
@@ -223,4 +225,10 @@ async function openSidePanel() {
   const currentWindow = await browser.windows.getCurrent();
   if (!currentWindow.id) return;
   await browser.sidePanel.open({ windowId: currentWindow.id });
+}
+
+async function focusTab(tabId: number) {
+  await browser.tabs.update(tabId, { active: true });
+  const tab = await browser.tabs.get(tabId);
+  await browser.windows.update(tab.windowId, { focused: true });
 }
