@@ -16,7 +16,7 @@ export default defineConfig(
   {
     settings: {
       'better-tailwindcss': {
-        entryPoint: 'entrypoints/popup/main.css',
+        entryPoint: 'src/main.css',
       },
     },
   },

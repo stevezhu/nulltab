@@ -6,9 +6,9 @@ import { type Browser, browser } from 'wxt/browser';
 import { useTabsQuery } from '#hooks/useTabsQuery.ts';
 import { useWindowsQuery } from '#hooks/useWindowsQuery.ts';
 
-import { windowStorage } from '../utils/windowStorage';
-import TopBar, { type TopBarFilterMode } from './TopBar';
-import { WindowCard } from './WindowCard';
+import TopBar, { type TopBarFilterMode } from './components/TopBar';
+import { WindowCard } from './components/WindowCard';
+import { windowStorage } from './utils/windowStorage';
 
 interface TabsByWindow {
   [windowId: number]: Browser.tabs.Tab[];

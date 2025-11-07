@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@workspace/shadcn/components/select';
-import { PanelRight, Search } from 'lucide-react';
+import { PanelRight, Search, Sparkles } from 'lucide-react';
 
 // TODO: rename this
 export type TopBarFilterMode = 'managed' | 'unmanaged';
@@ -46,7 +46,10 @@ export default function TopBar({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="managed">Managed Windows</SelectItem>
+            <SelectItem value="managed">
+              <Sparkles className="text-yellow-500" />
+              Managed Windows
+            </SelectItem>
             <SelectItem value="unmanaged">Unmanaged Windows</SelectItem>
           </SelectContent>
         </Select>
