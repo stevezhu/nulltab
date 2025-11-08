@@ -1,3 +1,5 @@
+/// <reference types="@wxt-dev/module-react" />
+
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'wxt';
 

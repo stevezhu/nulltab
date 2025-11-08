@@ -4,12 +4,11 @@ import { FolderInput, FolderOutput, RotateCcw, XIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { type Browser, browser } from 'wxt/browser';
 
-import { useTabsQuery } from '#hooks/useTabsQuery.ts';
-import { useWindowsQuery } from '#hooks/useWindowsQuery.ts';
-
-import TopBar, { type TopBarFilterMode } from './components/TopBar';
-import { WindowCard } from './components/WindowCard';
-import { windowStorage } from './utils/windowStorage';
+import TopBar, { type TopBarFilterMode } from '#components/TopBar.js';
+import { WindowCard } from '#components/WindowCard.js';
+import { useTabsQuery } from '#hooks/useTabsQuery.js';
+import { useWindowsQuery } from '#hooks/useWindowsQuery.js';
+import { windowStorage } from '#utils/windowStorage.js';
 
 interface TabsByWindow {
   [windowId: number]: Browser.tabs.Tab[];
