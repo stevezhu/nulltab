@@ -1,104 +1,127 @@
 import { cn } from '@workspace/shadcn/lib/utils';
 import type { ReactNode } from 'react';
 
-type TabData = {
-  title?: string;
-  url?: string;
-  favIconUrl?: string;
-  active?: boolean;
-};
-
 export type WindowCardProps = {
-  title: string;
-  tabCount: number;
-  tabs: TabData[];
-  actions?: ReactNode;
-  isHighlighted?: boolean;
-  isClosed?: boolean;
-  onTabClick?: (index: number) => void;
+  active?: boolean;
+  disabled?: boolean;
+  children?: ReactNode;
 };
 
-export function WindowCard({
-  title,
-  tabCount,
-  tabs,
-  actions,
-  isHighlighted = false,
-  isClosed = false,
-  onTabClick,
-}: WindowCardProps) {
+export function WindowCard({ active, disabled, children }: WindowCardProps) {
   return (
     <div
       className={cn(
         'overflow-hidden rounded-lg border bg-card/50',
-        isHighlighted && !isClosed && 'border-2 border-blue-500',
-        !isHighlighted && 'border-border',
-        isClosed && 'opacity-50 grayscale',
+        active && !disabled && 'border-blue-500 outline-1 outline-blue-500',
+        !active && 'border-border',
+        disabled && 'opacity-50 grayscale',
       )}
     >
-      <div
-        className={`
-          flex items-center justify-between border-b border-border bg-muted/50
-          px-4 py-3
-        `}
-      >
-        <div className="flex items-baseline gap-3">
-          <h2 className="text-base font-semibold">{title}</h2>
-          <span className="text-sm text-muted-foreground">{tabCount} tabs</span>
-        </div>
-        {actions && <div className="flex gap-2">{actions}</div>}
-      </div>
-      <div className="flex flex-col">
-        {tabs.map((tab, index) => {
-          return (
-            <div
-              key={index}
-              className={cn(
-                `
-                  flex items-center gap-3 border-b border-border px-4 py-3
-                  last:border-b-0
-                `,
-                onTabClick &&
-                  !isClosed &&
-                  `
-                    cursor-pointer transition-colors
-                    hover:bg-blue-50
-                  `,
-                tab.active &&
-                  !isClosed &&
-                  `border-l-4 border-l-blue-500 bg-blue-100 pl-[calc(1rem-4px)]`,
-              )}
-              onClick={
-                onTabClick && !isClosed
-                  ? () => {
-                      onTabClick(index);
-                    }
-                  : undefined
-              }
-            >
-              {tab.favIconUrl && (
-                <img
-                  src={tab.favIconUrl}
-                  alt=""
-                  className="h-4 w-4 shrink-0"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
-              )}
-              <div className="min-w-0 flex-1 text-left">
-                <div className="truncate text-sm font-medium">
-                  {tab.title || 'Untitled'}
-                </div>
-                <div className="truncate text-xs text-muted-foreground">
-                  {getHostname(tab.url)}
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      {children}
     </div>
+  );
+}
+
+export type WindowCardHeaderProps = {
+  title: string;
+  tabCount: number;
+  children?: ReactNode;
+};
+
+export function WindowCardHeader({
+  title,
+  tabCount,
+  children,
+}: WindowCardHeaderProps) {
+  return (
+    <div
+      className={`
+        flex items-center justify-between border-b border-border bg-muted/50
+        px-4 py-3
+      `}
+    >
+      <div className="flex items-baseline gap-3">
+        <h2 className="text-base font-semibold">{title}</h2>
+        <span className="text-sm text-muted-foreground">{tabCount} tabs</span>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+export type WindowCardTabsProps = {
+  children?: ReactNode;
+};
+
+export function WindowCardTabs({ children }: WindowCardTabsProps) {
+  return <div className="flex flex-col">{children}</div>;
+}
+
+export type WindowCardTabProps = {
+  title?: string;
+  url?: string;
+  favIconUrl?: string;
+  active?: boolean;
+  /**
+   * Used when the tab is closed or disabled.
+   */
+  disabled?: boolean;
+  onClick?: () => void;
+};
+
+export function WindowCardTab({
+  title,
+  url,
+  favIconUrl,
+  active,
+  disabled,
+  onClick,
+}: WindowCardTabProps) {
+  return (
+    <button
+      disabled={disabled}
+      className={cn(
+        `
+          flex items-center gap-3 border-b border-border px-4 py-3
+          last:border-b-0
+        `,
+        !disabled &&
+          onClick &&
+          `
+            cursor-pointer transition-colors
+            hover:bg-blue-50
+          `,
+        !disabled &&
+          active &&
+          `border-l-4 border-l-blue-500 bg-blue-100 pl-[calc(1rem-4px)]`,
+      )}
+      onClick={
+        onClick
+          ? () => {
+              onClick();
+            }
+          : undefined
+      }
+    >
+      {favIconUrl && (
+        <img
+          src={favIconUrl}
+          alt=""
+          className="h-4 w-4 shrink-0"
+          onError={(e) => {
+            e.currentTarget.style.display = 'none';
+          }}
+        />
+      )}
+      <div className="min-w-0 flex-1 text-left">
+        <div className="truncate text-sm font-medium">
+          {title ?? 'Untitled'}
+        </div>
+        <div className="truncate text-xs text-muted-foreground">
+          {getHostname(url)}
+        </div>
+      </div>
+    </button>
   );
 }
 
