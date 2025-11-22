@@ -1,5 +1,5 @@
 {
-  "extends": "./.wxt/tsconfig.json",
-  "include": ["**/*", ".storybook/**/*"],
-  "compilerOptions": { "jsx": "react-jsx" }
+  "extends": ["@stzhu/tsconfig/tsconfig.react.json", "./.wxt/tsconfig.json"],
+  "include": ["**/*", ".storybook/**/*", ".wxt/**/*"],
+  "compilerOptions": { "rootDir": "." }
 }

@@ -22,8 +22,8 @@ const meta = preview.meta({
     disabled,
     onTabClick,
   }: {
-    title: string;
-    tabCount: number;
+    title?: string;
+    tabCount?: number;
     tabs: Array<
       Pick<WindowCardTabProps, 'title' | 'url' | 'favIconUrl' | 'active'> & {
         id: number;
@@ -32,22 +32,23 @@ const meta = preview.meta({
     actions?: ReactNode;
     active?: boolean;
     disabled?: boolean;
-    onTabClick?: () => void;
+    onTabClick?: (tabId: number) => void;
   }) {
     return (
       <WindowCard active={active} disabled={disabled}>
-        <WindowCardHeader title={title} tabCount={tabCount}>
-          {actions}
-        </WindowCardHeader>
+        {title && actions && (
+          <WindowCardHeader title={title} tabCount={tabCount}>
+            {actions}
+          </WindowCardHeader>
+        )}
         <WindowCardTabs>
           {tabs.map((tab) => {
-            console.log(tab);
             return (
               <WindowCardTab
                 key={tab.id}
                 active={active}
                 disabled={disabled}
-                onClick={onTabClick}
+                onClick={() => onTabClick?.(tab.id)}
                 {...tab}
               />
             );
@@ -56,9 +57,19 @@ const meta = preview.meta({
       </WindowCard>
     );
   },
+  subcomponents: {
+    WindowCard,
+    WindowCardHeader,
+    WindowCardTabs,
+    WindowCardTab,
+  },
   tags: ['autodocs'],
   args: {
     onTabClick: fn(),
+  },
+  argTypes: {
+    actions: { control: false },
+    onTabClick: { control: false },
   },
 });
 
@@ -104,5 +115,33 @@ export const Disabled = Default.extend({
 export const Active = Default.extend({
   args: {
     active: true,
+  },
+});
+
+export const NoTabCount = Default.extend({
+  args: {
+    tabCount: undefined,
+  },
+});
+
+export const NoHeader = Default.extend({
+  args: {
+    title: undefined,
+    actions: undefined,
+  },
+});
+
+export const LongText = Default.extend({
+  args: {
+    tabs: [
+      {
+        id: 1,
+        title:
+          'A Very Long Title That Might Wrap to Multiple Lines in Certain Scenarios',
+        url: 'https://www.googleasdklajsdkajsdkajskldjalksdjkalsjldkajsdljaskdjkalsjdklasjkdljaskldjkalsdjaklsjdlkasd.com/search?q=a+very+long+title+that+might+wrap+to+multiple+lines+in+certain+scenarios',
+        favIconUrl: 'https://www.google.com/favicon.ico',
+        active: true,
+      },
+    ],
   },
 });

@@ -5,7 +5,8 @@
   "description": "A new browsing experience that replaces tab chaos with intelligent organization",
   "type": "module",
   "imports": {
-    "#*": "./src/*"
+    "#*": "./src/*",
+    "#.storybook/*": "./.storybook/*"
   },
   "scripts": {
     "build": "wxt build",
@@ -36,9 +37,12 @@
     "@storybook/addon-a11y": "catalog:",
     "@storybook/addon-docs": "catalog:",
     "@storybook/addon-onboarding": "catalog:",
+    "@storybook/addon-vitest": "catalog:",
     "@storybook/react-vite": "catalog:",
     "@stzhu/eslint-config": "catalog:",
+    "@stzhu/tsconfig": "catalog:",
     "@tailwindcss/vite": "^4.1.16",
+    "@types/lodash-es": "^4.17.12",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",

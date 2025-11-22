@@ -24,7 +24,7 @@ export function WindowCard({ active, disabled, children }: WindowCardProps) {
 
 export type WindowCardHeaderProps = {
   title: string;
-  tabCount: number;
+  tabCount?: number;
   children?: ReactNode;
 };
 
@@ -42,7 +42,9 @@ export function WindowCardHeader({
     >
       <div className="flex items-baseline gap-3">
         <h2 className="text-base font-semibold">{title}</h2>
-        <span className="text-sm text-muted-foreground">{tabCount} tabs</span>
+        {tabCount && (
+          <span className="text-sm text-muted-foreground">{tabCount} tabs</span>
+        )}
       </div>
       {children}
     </div>
@@ -66,6 +68,7 @@ export type WindowCardTabProps = {
    * Used when the tab is closed or disabled.
    */
   disabled?: boolean;
+  truncateTitle?: boolean;
   onClick?: () => void;
 };
 
@@ -75,6 +78,7 @@ export function WindowCardTab({
   favIconUrl,
   active,
   disabled,
+  truncateTitle,
   onClick,
 }: WindowCardTabProps) {
   return (
@@ -114,10 +118,10 @@ export function WindowCardTab({
         />
       )}
       <div className="min-w-0 flex-1 text-left">
-        <div className="truncate text-sm font-medium">
+        <div className={cn('text-sm font-medium', truncateTitle && 'truncate')}>
           {title ?? 'Untitled'}
         </div>
-        <div className="truncate text-xs text-muted-foreground">
+        <div className="text-xs wrap-anywhere break-all text-muted-foreground">
           {getHostname(url)}
         </div>
       </div>

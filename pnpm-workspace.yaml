@@ -10,7 +10,7 @@ catalog:
   '@storybook/react-vite': ^10.0.0
   '@stzhu/eslint-config': ^0.9.0
   '@stzhu/prettier-plugin-tsconfig': ^0.7.0
-  '@stzhu/tsconfig': ^0.1.0
+  '@stzhu/tsconfig': 0.1.0
   '@types/node': ^24.9.2
   '@types/react': ^19.2.0
   '@types/react-dom': ^19.2.0
