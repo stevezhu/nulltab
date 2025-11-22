@@ -1,0 +1,20 @@
+{
+  "name": "eslint-import-resolver-wxt",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs --dts --outDir dist",
+    "dev": "pnpm run build --watch"
+  },
+  "devDependencies": {
+    "@stzhu/tsconfig": "catalog:",
+    "@types/node": "catalog:",
+    "tsup": "^8.5.0"
+  }
+}

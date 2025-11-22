@@ -7,5 +7,12 @@ export default defineConfig({
   build: {
     sourcemap: true,
   },
-  plugins: [tailwindcss(), react()],
+  plugins: [
+    tailwindcss(),
+    react({
+      babel: {
+        plugins: ['babel-plugin-react-compiler'],
+      },
+    }),
+  ],
 });
