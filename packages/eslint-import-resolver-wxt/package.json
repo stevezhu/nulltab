@@ -15,6 +15,6 @@
   "devDependencies": {
     "@stzhu/tsconfig": "catalog:",
     "@types/node": "catalog:",
-    "tsup": "^8.5.0"
+    "tsup": "^8.5.1"
   }
 }
