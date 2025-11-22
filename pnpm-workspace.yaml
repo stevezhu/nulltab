@@ -7,6 +7,7 @@ catalog:
   '@storybook/addon-a11y': ^10.0.0
   '@storybook/addon-docs': ^10.0.0
   '@storybook/addon-onboarding': ^10.0.0
+  '@storybook/addon-vitest': ^10.0.0
   '@storybook/react-vite': ^10.0.0
   '@stzhu/eslint-config': ^0.9.0
   '@stzhu/prettier-plugin-tsconfig': ^0.7.0
