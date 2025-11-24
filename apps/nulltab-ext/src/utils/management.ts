@@ -24,6 +24,7 @@ export function convertTabToTabData(tab: Browser.tabs.Tab): TabData {
     url: tab.url,
     favIconUrl: tab.favIconUrl,
     active: tab.active,
+    lastAccessed: tab.lastAccessed,
   };
 }
 
@@ -66,6 +67,7 @@ export async function openManagedTab({
     }),
     browser.tabs.update(tabId, { active: true }),
     browser.tabs.move(tabId, { index: -1 }),
+    browser.windows.update(mainWindowId, { focused: true }),
   ]);
 }
 

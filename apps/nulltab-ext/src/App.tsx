@@ -158,6 +158,7 @@ function AppContent({
                 url={tab.url}
                 favIconUrl={tab.favIconUrl}
                 active={'active' in tab ? tab.active : undefined}
+                lastAccessed={tab.lastAccessed}
                 onClick={() => {
                   if (!tab.id || !mainTabGroup?.id || !mainTabGroup.windowId)
                     return;
