@@ -36,6 +36,8 @@ export async function manageWindow({ windowId }: { windowId: number }) {
   await createMainTabGroup({ tabIds });
 }
 
+const TOTAL_OPEN_TABS = 5;
+
 export async function openManagedTab({
   mainTabGroupId,
   mainWindowId,
@@ -45,28 +47,46 @@ export async function openManagedTab({
   mainWindowId: number;
   tabId: number;
 }) {
-  const ungroupedTabs = await browser.tabs.query({
-    windowId: mainWindowId,
-    groupId: browser.tabGroups.TAB_GROUP_ID_NONE,
-  });
-  // NOTE: we need to filter out the tab that we're currently focusing
-  const ungroupedTabIds = getTabIds(ungroupedTabs).filter((id) => id !== tabId);
+  // Get all tabs in the window (both grouped and ungrouped) sorted by most recent
+  const allTabs = await browser.tabs.query({ windowId: mainWindowId });
+  const sortedTabs = sortTabs(allTabs);
+
+  // Get the 4 most recent tabs (excluding the target tab)
+  const recentTabIds = getTabIds(sortedTabs)
+    .filter((id) => id !== tabId)
+    .slice(0, TOTAL_OPEN_TABS - 1);
+
+  // Combine target tab with recent tabs
+  const tabsToOpen = [tabId, ...recentTabIds];
+  const tabsToOpenSet = new Set(tabsToOpen);
+
+  // Get all tabs that should be grouped (not in tabsToOpen)
+  const tabsToGroup = getTabIds(
+    allTabs.filter(
+      (tab) =>
+        tab.id !== undefined &&
+        tab.groupId !== mainTabGroupId &&
+        !tabsToOpenSet.has(tab.id),
+    ),
+  );
+
   // 1. Group and ungroup the corresponding tabs
   await Promise.all([
-    browser.tabs.ungroup(tabId),
-    hasAtLeastOne(ungroupedTabIds) &&
+    hasAtLeastOne(tabsToOpen) && browser.tabs.ungroup(tabsToOpen),
+    hasAtLeastOne(tabsToGroup) &&
       browser.tabs.group({
         groupId: mainTabGroupId,
-        tabIds: ungroupedTabIds,
+        tabIds: tabsToGroup,
       }),
   ]);
-  // 2. Collapse the tab group and focus the tab
+  // 2. Collapse the tab group, move tabs in order, and focus the target tab
   await Promise.all([
     browser.tabGroups.update(mainTabGroupId, {
       collapsed: true,
     }),
+    // Move all open tabs to end: target tab first, then recent tabs (most to least recent)
+    browser.tabs.move(tabsToOpen, { index: -1 }),
     browser.tabs.update(tabId, { active: true }),
-    browser.tabs.move(tabId, { index: -1 }),
     browser.windows.update(mainWindowId, { focused: true }),
   ]);
 }
