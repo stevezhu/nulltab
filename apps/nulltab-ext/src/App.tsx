@@ -90,16 +90,6 @@ function AppContent({
   });
   const mainTabGroup = mainTabGroupQuery.data;
 
-  const handleTabClick = ({ tabId }: { tabId: number }) => focusTab(tabId);
-
-  // TODO: convert to mutation
-  const handleManageWindow = async ({ windowId }: { windowId: number }) => {
-    await manageWindow({ windowId });
-
-    // Update local state
-    await Promise.all([windowsQuery.refetch(), tabsQuery.refetch()]);
-  };
-
   const openWindows = useMemo(() => {
     const windows: WindowData[] = [];
     if (filterMode === 'unmanaged') {
@@ -138,8 +128,14 @@ function AppContent({
           .filter((tab) => tab.id !== undefined)
           .map(convertTabToTabData)}
         currentWindowId={currentWindow.id}
-        onManageWindow={handleManageWindow}
-        onTabClick={handleTabClick}
+        onManageWindow={async ({ windowId }: { windowId: number }) => {
+          await manageWindow({ windowId });
+
+          // Update local state
+          // TODO: use mutation
+          await Promise.all([windowsQuery.refetch(), tabsQuery.refetch()]);
+        }}
+        onTabClick={({ tabId }: { tabId: number }) => focusTab(tabId)}
       />
     );
   }

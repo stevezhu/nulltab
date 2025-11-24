@@ -48,7 +48,9 @@ export async function openManagedTab({
     windowId: mainWindowId,
     groupId: browser.tabGroups.TAB_GROUP_ID_NONE,
   });
-  const ungroupedTabIds = getTabIds(ungroupedTabs);
+  // NOTE: we need to filter out the tab that we're currently focusing
+  const ungroupedTabIds = getTabIds(ungroupedTabs).filter((id) => id !== tabId);
+  // 1. Group and ungroup the corresponding tabs
   await Promise.all([
     browser.tabs.ungroup(tabId),
     hasAtLeastOne(ungroupedTabIds) &&
@@ -57,6 +59,7 @@ export async function openManagedTab({
         tabIds: ungroupedTabIds,
       }),
   ]);
+  // 2. Collapse the tab group and focus the tab
   await Promise.all([
     browser.tabGroups.update(mainTabGroupId, {
       collapsed: true,
