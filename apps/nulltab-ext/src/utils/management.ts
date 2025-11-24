@@ -1,3 +1,6 @@
+import { type Browser, browser } from 'wxt/browser';
+import { storage } from 'wxt/utils/storage';
+
 import { TabData } from '#models/index.js';
 
 export async function openSidePanel() {
@@ -25,32 +28,11 @@ export function convertTabToTabData(tab: Browser.tabs.Tab): TabData {
 }
 
 export async function manageWindow({ windowId }: { windowId: number }) {
-  // Get all tabs for the window
   const tabs = await browser.tabs.query({ windowId });
   const tabIds = tabs
     .map((tab) => tab.id)
     .filter((id): id is number => Boolean(id));
-
-  if (tabIds.length === 0) return;
-
-  let { mainTabGroupId } = await browser.storage.local.get<{
-    mainTabGroupId: number;
-  }>('mainTabGroupId');
-
-  // Group all tabs in the window if there is no main window
-  mainTabGroupId = await browser.tabs.group({
-    groupId: mainTabGroupId,
-    tabIds: tabIds as [number, ...number[]],
-  });
-  await browser.storage.local.set({ mainTabGroupId });
-
-  // save all other tabs to tab group then make current one active
-
-  // Collapse the tab group
-  void browser.tabGroups.update(mainTabGroupId, {
-    collapsed: true,
-    title: 'Managed',
-  });
+  await createMainTabGroup({ tabIds });
 }
 
 export async function openManagedTab({
@@ -94,4 +76,65 @@ export function sortTabs(tabs: Browser.tabs.Tab[]): Browser.tabs.Tab[] {
 
 function hasAtLeastOne<T>(array: T[]): array is [T, ...T[]] {
   return array.length > 0;
+}
+
+const WATERMARK = '\u200B'; // Zero-width space
+const WATERMARKED_MAIN_TAB_GROUP_TITLE = `Managed${WATERMARK}`;
+
+const mainTabGroupIdStorage = storage.defineItem<number | null>(
+  'local:mainTabGroupId',
+  {
+    fallback: null,
+  },
+);
+
+export async function createMainTabGroup({
+  tabIds,
+}: {
+  tabIds: number[];
+}): Promise<void> {
+  if (!hasAtLeastOne(tabIds)) return;
+
+  const mainTabGroup = await getMainTabGroup();
+  const mainTabGroupId = await browser.tabs.group({
+    groupId: mainTabGroup?.id,
+    tabIds,
+  });
+  await mainTabGroupIdStorage.setValue(mainTabGroupId);
+
+  // Collapse tab group
+  void browser.tabGroups.update(mainTabGroupId, {
+    collapsed: true,
+    title: WATERMARKED_MAIN_TAB_GROUP_TITLE,
+  });
+}
+
+export async function getMainTabGroup(): Promise<
+  Browser.tabGroups.TabGroup | undefined
+> {
+  const mainTabGroupId = await mainTabGroupIdStorage.getValue();
+
+  // 1. Attempt to get the main tab group from the id
+  if (mainTabGroupId !== null) {
+    const mainTabGroup = await browser.tabGroups
+      .get(mainTabGroupId)
+      .catch(() => undefined);
+    if (mainTabGroup) {
+      return mainTabGroup;
+    }
+    // reset id since we confirmed it is not valid
+    await mainTabGroupIdStorage.setValue(null);
+  }
+
+  // 2. If the id is not valid, try to find the main tab group by title
+  // XXX: only use the first main tab group found
+  // TODO: merge if multiple main tab groups are found
+  const [mainTabGroup] = await browser.tabGroups.query({
+    title: WATERMARKED_MAIN_TAB_GROUP_TITLE,
+  });
+  if (!mainTabGroup) return undefined;
+
+  // 3. Set the main tab group id since we found it
+  await mainTabGroupIdStorage.setValue(mainTabGroup.id);
+  return mainTabGroup;
 }

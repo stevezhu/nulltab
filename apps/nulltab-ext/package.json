@@ -46,6 +46,7 @@
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "@types/webextension-polyfill": "^0.12.4",
     "@vitejs/plugin-react": "^5.1.1",
     "@workspace/shadcn": "workspace:*",
     "@wxt-dev/module-react": "^1.1.5",
@@ -56,7 +57,7 @@
     "tailwindcss": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
-    "vitest": "^4.0.13",
+    "vitest": "catalog:",
     "wxt": "^0.20.11"
   }
 }

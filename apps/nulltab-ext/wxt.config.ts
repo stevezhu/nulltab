@@ -21,6 +21,7 @@ export default defineConfig({
     },
   },
   modules: ['@wxt-dev/module-react'],
+  imports: false,
   react: {
     vite: {
       babel: {

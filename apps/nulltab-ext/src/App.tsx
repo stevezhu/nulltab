@@ -1,6 +1,6 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
-import { browser } from 'wxt/browser';
+import { type Browser, browser } from 'wxt/browser';
 
 import TopBar, { type TopBarFilterMode } from '#components/TopBar.js';
 import {
@@ -15,6 +15,7 @@ import { WindowData } from '#models/index.js';
 import {
   convertTabToTabData,
   focusTab,
+  getMainTabGroup,
   manageWindow,
   openManagedTab,
   openSidePanel,
@@ -77,86 +78,19 @@ function AppContent({
     return getFilteredTabs({ tabs: tabsQuery.data, searchQuery });
   }, [tabsQuery.data, searchQuery]);
 
-  // const closedWindowsQuery = useSuspenseQuery({
-  //   queryKey: ['closedWindows'],
-  //   queryFn: () => windowStorage.getClosedWindows(),
-  // });
-  // const closedWindows = closedWindowsQuery.data;
-
   const currentWindowQuery = useSuspenseQuery({
     queryKey: ['currentWindow'],
     queryFn: () => browser.windows.getCurrent(),
   });
   const currentWindow = currentWindowQuery.data;
 
-  const mainInfoQuery = useSuspenseQuery<{
-    mainTabGroupId?: number;
-    mainWindowId?: number;
-  }>({
-    queryKey: ['mainInfo'],
-    queryFn: async () => {
-      const { mainTabGroupId } = await browser.storage.local.get<{
-        mainTabGroupId: number;
-      }>('mainTabGroupId');
-      if (!mainTabGroupId) return {};
-
-      // TODO: test what happens when you put a random tab group id
-      const mainTabGroup = await browser.tabGroups.get(mainTabGroupId);
-      return { mainTabGroupId, mainWindowId: mainTabGroup.windowId };
-    },
+  const mainTabGroupQuery = useSuspenseQuery({
+    queryKey: ['mainTabGroup'],
+    queryFn: () => getMainTabGroup(),
   });
-  const { mainTabGroupId, mainWindowId } = mainInfoQuery.data;
+  const mainTabGroup = mainTabGroupQuery.data;
 
   const handleTabClick = ({ tabId }: { tabId: number }) => focusTab(tabId);
-
-  // const handleCloseWindow = async (windowId: number) => {
-  //   // Get all tabs for the window
-  //   const tabs = await browser.tabs.query({ windowId });
-
-  //   // Don't save empty windows
-  //   if (tabs.length === 0) return;
-
-  //   // Save window data to storage
-  //   await windowStorage.saveClosedWindow({
-  //     originalWindowId: windowId,
-  //     tabs: tabs.map((tab) => ({
-  //       title: tab.title,
-  //       url: tab.url,
-  //       favIconUrl: tab.favIconUrl,
-  //     })),
-  //     closedAt: new Date(),
-  //   });
-
-  //   // Remove from managed windows if it was managed
-  //   await windowStorage.removeManagedWindow(windowId);
-
-  //   // Close the window
-  //   await browser.windows.remove(windowId);
-
-  //   // Update local state
-  //   await Promise.all([windowsQuery.refetch(), closedWindowsQuery.refetch()]);
-  // };
-
-  // const handleRestoreWindow = async (closedWindowId: string) => {
-  //   const closedWindow = closedWindows.find((w) => w.id === closedWindowId);
-  //   if (!closedWindow) return;
-
-  //   // Extract URLs from tabs
-  //   const urls = closedWindow.tabs
-  //     .map((tab) => tab.url)
-  //     .filter((url): url is string => typeof url === 'string');
-
-  //   if (urls.length === 0) return;
-
-  //   // Create new window with all tabs
-  //   await browser.windows.create({ url: urls });
-
-  //   // Remove from storage
-  //   await windowStorage.removeClosedWindow(closedWindowId);
-
-  //   // Update local state
-  //   await Promise.all([windowsQuery.refetch(), closedWindowsQuery.refetch()]);
-  // };
 
   // TODO: convert to mutation
   const handleManageWindow = async ({ windowId }: { windowId: number }) => {
@@ -165,24 +99,6 @@ function AppContent({
     // Update local state
     await Promise.all([windowsQuery.refetch(), tabsQuery.refetch()]);
   };
-
-  // const handleUnmanageWindow = async (windowId: number) => {
-  //   // Get all tabs for the window
-  //   const tabs = await browser.tabs.query({ windowId });
-
-  //   // Ungroup all tabs that are in a group
-  //   for (const tab of tabs) {
-  //     if (tab.id && tab.groupId !== -1) {
-  //       await browser.tabs.ungroup(tab.id);
-  //     }
-  //   }
-
-  //   // Remove window ID from storage
-  //   await windowStorage.removeManagedWindow(windowId);
-
-  //   // Update local state
-  //   await Promise.all([windowsQuery.refetch(), tabsQuery.refetch()]);
-  // };
 
   const openWindows = useMemo(() => {
     const windows: WindowData[] = [];
@@ -205,11 +121,14 @@ function AppContent({
     const managedTabs: Browser.tabs.Tab[] = [];
     for (const tab of filteredTabs) {
       if (!tab.id) continue;
-      (mainWindowId === tab.windowId ? managedTabs : unmanagedTabs).push(tab);
+      (mainTabGroup?.windowId === tab.windowId
+        ? managedTabs
+        : unmanagedTabs
+      ).push(tab);
     }
     sortTabs(managedTabs);
     return { managedTabs, unmanagedTabs };
-  }, [filteredTabs, mainWindowId]);
+  }, [filteredTabs, mainTabGroup]);
 
   if (filterMode === 'unmanaged') {
     return (
@@ -244,10 +163,11 @@ function AppContent({
                 favIconUrl={tab.favIconUrl}
                 active={'active' in tab ? tab.active : undefined}
                 onClick={() => {
-                  if (!tab.id || !mainTabGroupId || !mainWindowId) return;
+                  if (!tab.id || !mainTabGroup?.id || !mainTabGroup.windowId)
+                    return;
                   void openManagedTab({
-                    mainTabGroupId,
-                    mainWindowId,
+                    mainTabGroupId: mainTabGroup.id,
+                    mainWindowId: mainTabGroup.windowId,
                     tabId: tab.id,
                   });
                 }}
