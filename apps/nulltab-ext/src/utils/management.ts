@@ -2,6 +2,10 @@ import { type Browser, browser } from 'wxt/browser';
 import { storage } from 'wxt/utils/storage';
 
 import { TabData } from '#models/index.js';
+import { hasAtLeastOne } from '#utils/array.js';
+
+type Tab = Browser.tabs.Tab;
+type TabGroup = Browser.tabGroups.TabGroup;
 
 export async function openSidePanel() {
   const currentWindow = await browser.windows.getCurrent();
@@ -15,7 +19,7 @@ export async function focusTab(tabId: number) {
   await browser.windows.update(tab.windowId, { focused: true });
 }
 
-export function convertTabToTabData(tab: Browser.tabs.Tab): TabData {
+export function convertTabToTabData(tab: Tab): TabData {
   if (tab.id === undefined) throw new Error('Tab ID is required');
   return {
     id: tab.id,
@@ -25,6 +29,7 @@ export function convertTabToTabData(tab: Browser.tabs.Tab): TabData {
     favIconUrl: tab.favIconUrl,
     active: tab.active,
     lastAccessed: tab.lastAccessed,
+    discarded: tab.discarded,
   };
 }
 
@@ -36,71 +41,12 @@ export async function manageWindow({ windowId }: { windowId: number }) {
   await createMainTabGroup({ tabIds });
 }
 
-const TOTAL_OPEN_TABS = 5;
-
-export async function openManagedTab({
-  mainTabGroupId,
-  mainWindowId,
-  tabId,
-}: {
-  mainTabGroupId: number;
-  mainWindowId: number;
-  tabId: number;
-}) {
-  // Get all tabs in the window (both grouped and ungrouped) sorted by most recent
-  const allTabs = await browser.tabs.query({ windowId: mainWindowId });
-  const sortedTabs = sortTabs(allTabs);
-
-  // Get the 4 most recent tabs (excluding the target tab)
-  const recentTabIds = getTabIds(sortedTabs)
-    .filter((id) => id !== tabId)
-    .slice(0, TOTAL_OPEN_TABS - 1);
-
-  // Combine target tab with recent tabs
-  const tabsToOpen = [tabId, ...recentTabIds];
-  const tabsToOpenSet = new Set(tabsToOpen);
-
-  // Get all tabs that should be grouped (not in tabsToOpen)
-  const tabsToGroup = getTabIds(
-    allTabs.filter(
-      (tab) =>
-        tab.id !== undefined &&
-        tab.groupId !== mainTabGroupId &&
-        !tabsToOpenSet.has(tab.id),
-    ),
-  );
-
-  // 1. Group and ungroup the corresponding tabs
-  await Promise.all([
-    hasAtLeastOne(tabsToOpen) && browser.tabs.ungroup(tabsToOpen),
-    hasAtLeastOne(tabsToGroup) &&
-      browser.tabs.group({
-        groupId: mainTabGroupId,
-        tabIds: tabsToGroup,
-      }),
-  ]);
-  // 2. Collapse the tab group, move tabs in order, and focus the target tab
-  await Promise.all([
-    browser.tabGroups.update(mainTabGroupId, {
-      collapsed: true,
-    }),
-    // Move all open tabs to end: target tab first, then recent tabs (most to least recent)
-    browser.tabs.move(tabsToOpen, { index: -1 }),
-    browser.tabs.update(tabId, { active: true }),
-    browser.windows.update(mainWindowId, { focused: true }),
-  ]);
-}
-
-export function getTabIds(tabs: Browser.tabs.Tab[]): number[] {
+export function getTabIds(tabs: Tab[]): number[] {
   return tabs.map((tab) => tab.id).filter((id): id is number => Boolean(id));
 }
 
-export function sortTabs(tabs: Browser.tabs.Tab[]): Browser.tabs.Tab[] {
+export function sortTabs(tabs: Tab[]): Tab[] {
   return tabs.sort((a, b) => (b.lastAccessed ?? 0) - (a.lastAccessed ?? 0));
-}
-
-function hasAtLeastOne<T>(array: T[]): array is [T, ...T[]] {
-  return array.length > 0;
 }
 
 const WATERMARK = '\u200B'; // Zero-width space
@@ -134,16 +80,14 @@ export async function createMainTabGroup({
   });
 }
 
-export async function getMainTabGroup(): Promise<
-  Browser.tabGroups.TabGroup | undefined
-> {
+export async function getMainTabGroup(): Promise<TabGroup | null> {
   const mainTabGroupId = await mainTabGroupIdStorage.getValue();
 
   // 1. Attempt to get the main tab group from the id
   if (mainTabGroupId !== null) {
     const mainTabGroup = await browser.tabGroups
       .get(mainTabGroupId)
-      .catch(() => undefined);
+      .catch(() => null);
     if (mainTabGroup) {
       return mainTabGroup;
     }
@@ -157,7 +101,7 @@ export async function getMainTabGroup(): Promise<
   const [mainTabGroup] = await browser.tabGroups.query({
     title: WATERMARKED_MAIN_TAB_GROUP_TITLE,
   });
-  if (!mainTabGroup) return undefined;
+  if (!mainTabGroup) return null;
 
   // 3. Set the main tab group id since we found it
   await mainTabGroupIdStorage.setValue(mainTabGroup.id);

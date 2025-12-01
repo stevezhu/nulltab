@@ -16,7 +16,7 @@ export type WindowData = {
  */
 export type TabData = Pick<
   Browser.tabs.Tab,
-  'windowId' | 'title' | 'url' | 'favIconUrl' | 'active' | 'lastAccessed'
+  'windowId' | 'title' | 'url' | 'favIconUrl' | 'active' | 'lastAccessed' | 'discarded'
 > & {
   /**
    * Define manually to make this required.

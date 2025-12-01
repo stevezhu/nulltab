@@ -4,7 +4,7 @@ import {
   TooltipTrigger,
 } from '@workspace/shadcn/components/tooltip';
 import { cn } from '@workspace/shadcn/lib/utils';
-import { Clock } from 'lucide-react';
+import { Clock, CloudOff } from 'lucide-react';
 import { type ReactNode, useEffect, useState } from 'react';
 
 export type WindowCardProps = {
@@ -71,6 +71,7 @@ export type WindowCardTabProps = {
   favIconUrl?: string;
   active?: boolean;
   lastAccessed?: number;
+  discarded?: boolean;
   /**
    * Used when the tab is closed or disabled.
    */
@@ -85,6 +86,7 @@ export function WindowCardTab({
   favIconUrl,
   active,
   lastAccessed,
+  discarded,
   disabled,
   truncateTitle,
   onClick,
@@ -106,6 +108,7 @@ export function WindowCardTab({
         !disabled &&
           active &&
           `border-l-4 border-l-blue-500 bg-blue-100 pl-[calc(1rem-4px)]`,
+        discarded && 'bg-gray-50/50 opacity-70',
       )}
       onClick={
         onClick
@@ -119,20 +122,37 @@ export function WindowCardTab({
         <img
           src={favIconUrl}
           alt=""
-          className="h-4 w-4 shrink-0"
+          className={cn(
+            'h-4 w-4 shrink-0',
+            discarded && 'opacity-50 grayscale',
+          )}
           onError={(e) => {
             e.currentTarget.style.display = 'none';
           }}
         />
       )}
       <div className="min-w-0 flex-1 text-left">
-        <div className={cn('text-sm font-medium', truncateTitle && 'truncate')}>
+        <div
+          className={cn(
+            'overflow-hidden text-sm font-medium wrap-break-word',
+            truncateTitle && `truncate`,
+            discarded && 'text-muted-foreground italic',
+          )}
+        >
           {title ?? 'Untitled'}
         </div>
         <div className="text-xs wrap-anywhere break-all text-muted-foreground">
           {getHostname(url)}
         </div>
       </div>
+      {discarded && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <CloudOff className="h-3.5 w-3.5 text-muted-foreground" />
+          </TooltipTrigger>
+          <TooltipContent>Discarded (Unloaded)</TooltipContent>
+        </Tooltip>
+      )}
       {lastAccessed && <LastAccessedDisplay timestamp={lastAccessed} />}
     </button>
   );

@@ -91,6 +91,7 @@ export function WindowCardList({
                     favIconUrl={tab.favIconUrl}
                     active={'active' in tab ? tab.active : undefined}
                     lastAccessed={tab.lastAccessed}
+                    discarded={tab.discarded}
                     onClick={() => {
                       if (!tab.id) return;
                       onTabClick({ tabId: tab.id });

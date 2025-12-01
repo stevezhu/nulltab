@@ -2,7 +2,12 @@ import { useSuspenseQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { type Browser, browser } from 'wxt/browser';
 
-import TopBar, { type TopBarFilterMode } from '#components/TopBar.js';
+import { mainTabGroupQueryOptions } from '#api/queryOptions/mainTabGroup.js';
+import { getTabService } from '#api/TabService.js';
+import TopBar, {
+  TopBarCommand,
+  type TopBarFilterMode,
+} from '#components/TopBar.js';
 import {
   WindowCard,
   WindowCardTab,
@@ -15,9 +20,7 @@ import { WindowData } from '#models/index.js';
 import {
   convertTabToTabData,
   focusTab,
-  getMainTabGroup,
   manageWindow,
-  openManagedTab,
   openSidePanel,
   sortTabs,
 } from '#utils/management.js';
@@ -39,6 +42,8 @@ function getFilteredTabs({
   );
 }
 
+const tabService = getTabService();
+
 export default function App({ isPopup }: { isPopup?: boolean }) {
   const [filterMode, setFilterMode] = useState<TopBarFilterMode>('managed');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -49,15 +54,42 @@ export default function App({ isPopup }: { isPopup?: boolean }) {
       <TopBar
         filterMode={filterMode}
         onFilterChange={setFilterMode}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
         showSidePanelButton={isPopup}
         onOpenSidePanel={openSidePanel}
-      />
+      >
+        <TopBarCommand
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          commands={[
+            {
+              label: 'Discard Stale Tabs',
+              onSelect: () => {
+                void tabService.discardStaleTabs();
+              },
+            },
+            {
+              // NOTE: change the label here to be more understandable to users
+              label: 'Discard All Hidden Tabs',
+              onSelect: () => {
+                void tabService.discardAllGroupedTabs();
+              },
+            },
+            {
+              label: 'Save All Tabs',
+              onSelect: () => {
+                console.log('Save All Tabs');
+              },
+            },
+          ]}
+        />
+      </TopBar>
 
       {/* Content Area */}
       <div className="flex-1 overflow-y-auto p-4">
-        <AppContent filterMode={filterMode} searchQuery={searchQuery} />
+        <AppContent
+          filterMode={filterMode}
+          searchQuery={searchQuery.startsWith('/') ? '' : searchQuery}
+        />
       </div>
     </div>
   );
@@ -84,10 +116,7 @@ function AppContent({
   });
   const currentWindow = currentWindowQuery.data;
 
-  const mainTabGroupQuery = useSuspenseQuery({
-    queryKey: ['mainTabGroup'],
-    queryFn: () => getMainTabGroup(),
-  });
+  const mainTabGroupQuery = useSuspenseQuery(mainTabGroupQueryOptions);
   const mainTabGroup = mainTabGroupQuery.data;
 
   const openWindows = useMemo(() => {
@@ -132,7 +161,7 @@ function AppContent({
           await manageWindow({ windowId });
 
           // Update local state
-          // TODO: use mutation
+          // TODO: use mutation, invalidate queries instead of refetching
           await Promise.all([windowsQuery.refetch(), tabsQuery.refetch()]);
         }}
         onTabClick={({ tabId }: { tabId: number }) => focusTab(tabId)}
@@ -147,32 +176,31 @@ function AppContent({
     );
   }
   return (
-    <div>
-      <WindowCard>
-        <WindowCardTabs>
-          {managedTabs.map((tab) => {
-            return (
-              <WindowCardTab
-                key={tab.id}
-                title={tab.title}
-                url={tab.url}
-                favIconUrl={tab.favIconUrl}
-                active={'active' in tab ? tab.active : undefined}
-                lastAccessed={tab.lastAccessed}
-                onClick={() => {
-                  if (!tab.id || !mainTabGroup?.id || !mainTabGroup.windowId)
-                    return;
-                  void openManagedTab({
-                    mainTabGroupId: mainTabGroup.id,
-                    mainWindowId: mainTabGroup.windowId,
-                    tabId: tab.id,
-                  });
-                }}
-              />
-            );
-          })}
-        </WindowCardTabs>
-      </WindowCard>
-    </div>
+    <WindowCard>
+      <WindowCardTabs>
+        {managedTabs.map((tab) => {
+          return (
+            <WindowCardTab
+              key={tab.id}
+              title={tab.title}
+              url={tab.url}
+              favIconUrl={tab.favIconUrl}
+              active={'active' in tab ? tab.active : undefined}
+              lastAccessed={tab.lastAccessed}
+              discarded={tab.discarded}
+              onClick={() => {
+                if (!tab.id || !mainTabGroup?.id || !mainTabGroup.windowId)
+                  return;
+                void tabService.openManagedTab({
+                  mainTabGroupId: mainTabGroup.id,
+                  mainWindowId: mainTabGroup.windowId,
+                  tabId: tab.id,
+                });
+              }}
+            />
+          );
+        })}
+      </WindowCardTabs>
+    </WindowCard>
   );
 }
