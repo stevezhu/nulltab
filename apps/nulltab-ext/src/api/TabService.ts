@@ -39,7 +39,7 @@ async function openManagedTab({
     throw new Error(`Target tab not found: ${tabId}`);
   }
 
-  const tabsToOpen = [targetTab, ...recentTabs];
+  const tabsToOpen = [targetTab, ...recentTabs].reverse();
   const tabsToOpenIds = getTabIds(tabsToOpen);
   const tabsToGroupIds = getTabIds(tabsToGroup);
 

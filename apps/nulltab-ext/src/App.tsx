@@ -1,8 +1,14 @@
-import { useSuspenseQuery } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { type Browser, browser } from 'wxt/browser';
 
 import { mainTabGroupQueryOptions } from '#api/queryOptions/mainTabGroup.js';
+import { tabsQueryOptions } from '#api/queryOptions/tabs.js';
+import { windowsQueryOptions } from '#api/queryOptions/windows.js';
 import { getTabService } from '#api/TabService.js';
 import TopBar, {
   TopBarCommand,
@@ -14,8 +20,8 @@ import {
   WindowCardTabs,
 } from '#components/WindowCard.js';
 import { WindowCardList } from '#components/WindowCardList.js';
-import { useTabsQuery } from '#hooks/useTabsQuery.js';
-import { useWindowsQuery } from '#hooks/useWindowsQuery.js';
+import { useTabsListeners } from '#hooks/useTabsListeners.js';
+import { useWindowsListeners } from '#hooks/useWindowsListeners.js';
 import { WindowData } from '#models/index.js';
 import {
   convertTabToTabData,
@@ -45,8 +51,26 @@ function getFilteredTabs({
 const tabService = getTabService();
 
 export default function App({ isPopup }: { isPopup?: boolean }) {
+  useTabsListeners();
+  useWindowsListeners();
+
   const [filterMode, setFilterMode] = useState<TopBarFilterMode>('managed');
   const [searchQuery, setSearchQuery] = useState<string>('');
+
+  const queryClient = useQueryClient();
+  const discardStaleTabs = useMutation({
+    mutationFn: () => tabService.discardStaleTabs(),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['tabs'] });
+    },
+  });
+
+  const discardAllGroupedTabs = useMutation({
+    mutationFn: () => tabService.discardAllGroupedTabs(),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['tabs'] });
+    },
+  });
 
   return (
     <div className="flex h-full flex-col">
@@ -62,23 +86,13 @@ export default function App({ isPopup }: { isPopup?: boolean }) {
           onSearchChange={setSearchQuery}
           commands={[
             {
-              label: 'Discard Stale Tabs',
-              onSelect: () => {
-                void tabService.discardStaleTabs();
-              },
+              label: 'Unload Stale Tabs',
+              onSelect: discardStaleTabs.mutate,
             },
             {
               // NOTE: change the label here to be more understandable to users
-              label: 'Discard All Hidden Tabs',
-              onSelect: () => {
-                void tabService.discardAllGroupedTabs();
-              },
-            },
-            {
-              label: 'Save All Tabs',
-              onSelect: () => {
-                console.log('Save All Tabs');
-              },
+              label: 'Unload All Grouped Tabs',
+              onSelect: discardAllGroupedTabs.mutate,
             },
           ]}
         />
@@ -102,8 +116,8 @@ function AppContent({
   filterMode: TopBarFilterMode;
   searchQuery: string;
 }) {
-  const tabsQuery = useTabsQuery();
-  const windowsQuery = useWindowsQuery();
+  const tabsQuery = useSuspenseQuery(tabsQueryOptions);
+  const windowsQuery = useSuspenseQuery(windowsQueryOptions);
   const { managedWindows, unmanagedWindows } = windowsQuery.data;
 
   const filteredTabs = useMemo(() => {

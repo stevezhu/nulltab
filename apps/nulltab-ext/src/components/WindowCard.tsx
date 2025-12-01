@@ -108,7 +108,7 @@ export function WindowCardTab({
         !disabled &&
           active &&
           `border-l-4 border-l-blue-500 bg-blue-100 pl-[calc(1rem-4px)]`,
-        discarded && 'bg-gray-50/50 opacity-70',
+        discarded && 'bg-gray-50/50',
       )}
       onClick={
         onClick
