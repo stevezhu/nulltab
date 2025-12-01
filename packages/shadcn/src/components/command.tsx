@@ -6,25 +6,28 @@ import {
   DialogTitle,
 } from '@workspace/shadcn/components/dialog';
 import { cn } from '@workspace/shadcn/lib/utils';
-import { Command as CommandPrimitive } from 'cmdk';
+import { Command as CommandPrimitive, defaultFilter } from 'cmdk';
 import { SearchIcon } from 'lucide-react';
 import * as React from 'react';
 
-function Command({
-  className,
-  ...props
-}: React.ComponentProps<typeof CommandPrimitive>) {
-  return (
-    <CommandPrimitive
-      data-slot="command"
-      className={cn(
-        'bg-popover text-popover-foreground flex h-full w-full flex-col overflow-hidden rounded-md',
-        className,
-      )}
-      {...props}
-    />
-  );
-}
+const Command = Object.assign(
+  function Command({
+    className,
+    ...props
+  }: React.ComponentProps<typeof CommandPrimitive>) {
+    return (
+      <CommandPrimitive
+        data-slot="command"
+        className={cn(
+          'bg-popover text-popover-foreground flex h-full w-full flex-col overflow-hidden rounded-md',
+          className,
+        )}
+        {...props}
+      />
+    );
+  },
+  { defaultFilter },
+);
 
 function CommandDialog({
   title = 'Command Palette',

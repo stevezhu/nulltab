@@ -1,5 +1,6 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
+import { type Browser, browser } from 'wxt/browser';
 
 import { windowStorage } from '#utils/windowStorage.js';
 

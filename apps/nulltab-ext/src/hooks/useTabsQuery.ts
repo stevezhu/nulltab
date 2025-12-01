@@ -1,4 +1,6 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
+import { browser } from 'wxt/browser';
 
 export function useTabsQuery() {
   const tabsQuery = useSuspenseQuery({
