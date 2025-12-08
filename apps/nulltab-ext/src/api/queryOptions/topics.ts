@@ -1,6 +1,6 @@
 import { queryOptions } from '@tanstack/react-query';
 
-import { topicStorage } from '#utils/topicStorage.js';
+import { topicStorage } from '#api/storage/topicStorage.js';
 
 export const topicsKeys = {
   root: ['topics'] as const,

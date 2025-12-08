@@ -1,6 +1,7 @@
 import { queryOptions } from '@tanstack/react-query';
+import { type Browser, browser } from 'wxt/browser';
 
-import { windowStorage } from '#utils/windowStorage.js';
+import { windowStorage } from '#api/storage/windowStorage.js';
 
 export const windowsKeys = {
   root: ['windows'] as const,

@@ -1,15 +1,19 @@
 import { nanoid } from 'nanoid';
-import { Value } from 'typebox/value';
-import { browser } from 'wxt/browser';
+import { storage } from 'wxt/utils/storage';
 
-import {
-  type TabTopicAssignments,
-  type Topic,
-  TopicSchema,
-} from '#models/index.js';
+import { type TabTopicAssignments, type Topic } from '#models/index.js';
 
-const TOPICS_KEY = 'topics';
-const TAB_ASSIGNMENTS_KEY = 'tabTopicAssignments';
+// Define storage items using WXT storage API
+const topicsStorage = storage.defineItem<Topic[]>('local:topics', {
+  fallback: [],
+});
+
+const tabAssignmentsStorage = storage.defineItem<TabTopicAssignments>(
+  'local:tabTopicAssignments',
+  {
+    fallback: {},
+  },
+);
 
 export interface TopicStorage {
   // Topic CRUD
@@ -26,14 +30,7 @@ export interface TopicStorage {
 
 export class LocalStorageTopicStorage implements TopicStorage {
   async getTopics(): Promise<Topic[]> {
-    const result = await browser.storage.local.get(TOPICS_KEY);
-    const data: unknown = result[TOPICS_KEY] ?? [];
-
-    const validTopics = Array.isArray(data)
-      ? data.filter((item): item is Topic => Value.Check(TopicSchema, item))
-      : [];
-
-    return validTopics;
+    return topicsStorage.getValue();
   }
 
   async saveTopic(topicData: Omit<Topic, 'id'>): Promise<Topic> {
@@ -43,9 +40,7 @@ export class LocalStorageTopicStorage implements TopicStorage {
     };
 
     const existingTopics = await this.getTopics();
-    const updatedTopics = [...existingTopics, topic];
-
-    await browser.storage.local.set({ [TOPICS_KEY]: updatedTopics });
+    await topicsStorage.setValue([...existingTopics, topic]);
 
     return topic;
   }
@@ -56,14 +51,14 @@ export class LocalStorageTopicStorage implements TopicStorage {
       t.id === topic.id ? topic : t,
     );
 
-    await browser.storage.local.set({ [TOPICS_KEY]: updatedTopics });
+    await topicsStorage.setValue(updatedTopics);
   }
 
   async deleteTopic(id: string): Promise<void> {
     // Remove topic
     const existingTopics = await this.getTopics();
     const updatedTopics = existingTopics.filter((t) => t.id !== id);
-    await browser.storage.local.set({ [TOPICS_KEY]: updatedTopics });
+    await topicsStorage.setValue(updatedTopics);
 
     // Remove all tab assignments for this topic
     const assignments = await this.getTabAssignments();
@@ -73,45 +68,23 @@ export class LocalStorageTopicStorage implements TopicStorage {
         updatedAssignments[url] = topicId;
       }
     }
-    await browser.storage.local.set({
-      [TAB_ASSIGNMENTS_KEY]: updatedAssignments,
-    });
+    await tabAssignmentsStorage.setValue(updatedAssignments);
   }
 
   async getTabAssignments(): Promise<TabTopicAssignments> {
-    const result = await browser.storage.local.get(TAB_ASSIGNMENTS_KEY);
-    const data: unknown = result[TAB_ASSIGNMENTS_KEY] ?? {};
-
-    // Validate it's a plain object with string values
-    if (data && typeof data === 'object' && !Array.isArray(data)) {
-      const assignments: TabTopicAssignments = {};
-      for (const [key, value] of Object.entries(data)) {
-        if (typeof value === 'string') {
-          assignments[key] = value;
-        }
-      }
-      return assignments;
-    }
-
-    return {};
+    return tabAssignmentsStorage.getValue();
   }
 
   async assignTabToTopic(tabUrl: string, topicId: string): Promise<void> {
     const assignments = await this.getTabAssignments();
-    const updatedAssignments = { ...assignments, [tabUrl]: topicId };
-
-    await browser.storage.local.set({
-      [TAB_ASSIGNMENTS_KEY]: updatedAssignments,
-    });
+    await tabAssignmentsStorage.setValue({ ...assignments, [tabUrl]: topicId });
   }
 
   async removeTabAssignment(tabUrl: string): Promise<void> {
     const assignments = await this.getTabAssignments();
     const { [tabUrl]: _, ...updatedAssignments } = assignments;
 
-    await browser.storage.local.set({
-      [TAB_ASSIGNMENTS_KEY]: updatedAssignments,
-    });
+    await tabAssignmentsStorage.setValue(updatedAssignments);
   }
 }
 

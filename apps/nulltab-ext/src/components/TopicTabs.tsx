@@ -9,6 +9,8 @@ import { X } from 'lucide-react';
 import { CreateTopicDialog } from '#components/CreateTopicDialog.js';
 import { type Topic } from '#models/index.js';
 
+// XXX: this is a workaround to avoid the type being inferred as a union of string literals
+// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 export type TopicFilterValue = 'all' | 'uncategorized' | string;
 
 export type TopicCounts = {

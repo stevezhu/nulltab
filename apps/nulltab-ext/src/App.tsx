@@ -23,6 +23,7 @@ import {
   topicsQueryOptions,
 } from '#api/queryOptions/topics.js';
 import { windowsQueryOptions } from '#api/queryOptions/windows.js';
+import { topicStorage } from '#api/storage/topicStorage.js';
 import { getTabService } from '#api/TabService.js';
 import TopBar, {
   TopBarCommand,
@@ -49,7 +50,6 @@ import {
   openSidePanel,
   sortTabs,
 } from '#utils/management.js';
-import { topicStorage } from '#utils/topicStorage.js';
 
 function createSearchFilter(searchQuery: string) {
   const lowerQuery = searchQuery.toLowerCase();
