@@ -6,6 +6,7 @@ import {
 import { cn } from '@workspace/shadcn/lib/utils';
 import { X } from 'lucide-react';
 
+import { AllTopicsDropdown } from '#components/AllTopicsDropdown.js';
 import { CreateTopicDialog } from '#components/CreateTopicDialog.js';
 import { type Topic } from '#models/index.js';
 
@@ -25,6 +26,7 @@ export type TopicTabsProps = {
   selectedTopic: TopicFilterValue;
   onSelectTopic: (topic: TopicFilterValue) => void;
   onCreateTopic: (name: string, color?: string) => void;
+  onUpdateTopic: (topic: Topic) => void;
   onDeleteTopic: (id: string) => void;
 };
 
@@ -34,11 +36,12 @@ export function TopicTabs({
   selectedTopic,
   onSelectTopic,
   onCreateTopic,
+  onUpdateTopic,
   onDeleteTopic,
 }: TopicTabsProps) {
   return (
-    <div className="border-b bg-muted/30 px-4 py-2">
-      <ScrollArea className="w-full whitespace-nowrap">
+    <div className="flex items-center gap-2 border-b bg-muted/30 px-4 py-2">
+      <ScrollArea className="flex-1 whitespace-nowrap">
         <div className="flex items-center gap-2">
           {/* All tabs */}
           <TopicPill
@@ -82,6 +85,13 @@ export function TopicTabs({
         </div>
         <ScrollBar orientation="horizontal" />
       </ScrollArea>
+
+      {/* Edit all topics dropdown - pinned at end */}
+      <AllTopicsDropdown
+        topics={topics}
+        onUpdateTopic={onUpdateTopic}
+        onDeleteTopic={onDeleteTopic}
+      />
     </div>
   );
 }
