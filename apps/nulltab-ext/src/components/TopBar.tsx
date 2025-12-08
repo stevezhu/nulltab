@@ -80,7 +80,7 @@ export function TopBarCommand({
     onSelect: () => void;
   }[];
 }) {
-  const [open, setOpen] = useState(false);
+  const [isCommandListOpen, setIsCommandListOpen] = useState(false);
   return (
     // XXX: height has here has to match the height of the command component
     <div className="relative h-[38px] flex-1 basis-[300px]">
@@ -102,15 +102,16 @@ export function TopBarCommand({
             onSearchChange(value);
           }}
           onFocus={() => {
-            setOpen(true);
-          }}
-          onBlur={() => {
-            setOpen(false);
+            setIsCommandListOpen(true);
           }}
         />
         {commands && (
           <Activity
-            mode={open && searchQuery.startsWith('/') ? 'visible' : 'hidden'}
+            mode={
+              isCommandListOpen && searchQuery.startsWith('/')
+                ? 'visible'
+                : 'hidden'
+            }
           >
             <CommandList>
               <CommandEmpty>No results found.</CommandEmpty>

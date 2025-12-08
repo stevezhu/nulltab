@@ -1,11 +1,24 @@
 import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from '@workspace/shadcn/components/dropdown-menu';
+import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@workspace/shadcn/components/tooltip';
 import { cn } from '@workspace/shadcn/lib/utils';
-import { Clock, CloudOff } from 'lucide-react';
+import { CirclePause, Clock, MoreHorizontal, Tag, X } from 'lucide-react';
 import { type ReactNode, useEffect, useState } from 'react';
+
+import { type Topic } from '#models/index.js';
 
 export type WindowCardProps = {
   active?: boolean;
@@ -78,6 +91,11 @@ export type WindowCardTabProps = {
   disabled?: boolean;
   truncateTitle?: boolean;
   onClick?: () => void;
+  onClose?: () => void;
+  // Topic-related props
+  topics?: Topic[];
+  currentTopicId?: string;
+  onTopicChange?: (topicId: string | null) => void;
 };
 
 export function WindowCardTab({
@@ -90,10 +108,15 @@ export function WindowCardTab({
   disabled,
   truncateTitle,
   onClick,
+  onClose,
+  topics,
+  currentTopicId,
+  onTopicChange,
 }: WindowCardTabProps) {
+  const currentTopic = topics?.find((t) => t.id === currentTopicId);
+
   return (
-    <button
-      disabled={disabled}
+    <div
       className={cn(
         `
           flex items-center gap-3 border-b border-border px-4 py-3
@@ -111,9 +134,21 @@ export function WindowCardTab({
         discarded && 'bg-gray-50/50',
       )}
       onClick={
-        onClick
+        onClick && !disabled
           ? () => {
               onClick();
+            }
+          : undefined
+      }
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick && !disabled ? 0 : undefined}
+      onKeyDown={
+        onClick && !disabled
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onClick();
+              }
             }
           : undefined
       }
@@ -148,13 +183,97 @@ export function WindowCardTab({
       {discarded && (
         <Tooltip>
           <TooltipTrigger asChild>
-            <CloudOff className="h-3.5 w-3.5 text-muted-foreground" />
+            <CirclePause className="h-3.5 w-3.5 text-muted-foreground" />
           </TooltipTrigger>
-          <TooltipContent>Discarded (Unloaded)</TooltipContent>
+          <TooltipContent>Suspended</TooltipContent>
         </Tooltip>
       )}
       {lastAccessed && <LastAccessedDisplay timestamp={lastAccessed} />}
-    </button>
+      {/* Actions menu */}
+      {(onClose || (topics && onTopicChange)) && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className={cn(
+                `
+                  flex shrink-0 items-center rounded-md p-1
+                  text-muted-foreground transition-colors
+                `,
+                'hover:bg-accent hover:text-foreground',
+              )}
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+            >
+              <MoreHorizontal className="h-4 w-4" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="end"
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          >
+            {/* Topic submenu */}
+            {topics && onTopicChange && (
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  <Tag className="h-4 w-4" />
+                  <span>Topic</span>
+                  {currentTopic && (
+                    <span
+                      className="ml-auto h-2.5 w-2.5 rounded-full"
+                      style={{ backgroundColor: currentTopic.color }}
+                    />
+                  )}
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  <DropdownMenuCheckboxItem
+                    checked={!currentTopicId}
+                    onCheckedChange={() => {
+                      onTopicChange(null);
+                    }}
+                  >
+                    Uncategorized
+                  </DropdownMenuCheckboxItem>
+                  {topics.map((topic) => (
+                    <DropdownMenuCheckboxItem
+                      key={topic.id}
+                      checked={currentTopicId === topic.id}
+                      onCheckedChange={() => {
+                        onTopicChange(topic.id);
+                      }}
+                    >
+                      <span
+                        className="h-2.5 w-2.5 rounded-full"
+                        style={{ backgroundColor: topic.color }}
+                      />
+                      <span className="truncate">{topic.name}</span>
+                    </DropdownMenuCheckboxItem>
+                  ))}
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+            )}
+            {/* Close tab */}
+            {onClose && (
+              <>
+                {topics && onTopicChange && <DropdownMenuSeparator />}
+                <DropdownMenuItem
+                  variant="destructive"
+                  onClick={() => {
+                    onClose();
+                  }}
+                >
+                  <X className="h-4 w-4" />
+                  <span>Close tab</span>
+                </DropdownMenuItem>
+              </>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
+    </div>
   );
 }
 

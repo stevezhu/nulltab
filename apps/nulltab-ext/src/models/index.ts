@@ -16,7 +16,13 @@ export type WindowData = {
  */
 export type TabData = Pick<
   Browser.tabs.Tab,
-  'windowId' | 'title' | 'url' | 'favIconUrl' | 'active' | 'lastAccessed' | 'discarded'
+  | 'windowId'
+  | 'title'
+  | 'url'
+  | 'favIconUrl'
+  | 'active'
+  | 'lastAccessed'
+  | 'discarded'
 > & {
   /**
    * Define manually to make this required.
@@ -46,3 +52,24 @@ export const SerializedWindowSchema = Type.Object({
 });
 
 export type SerializedWindow = StaticParse<typeof SerializedWindowSchema>;
+
+/**
+ * A topic/category for organizing tabs.
+ */
+export const TopicSchema = Type.Object({
+  id: Type.String(),
+  name: Type.String(),
+  color: Type.Optional(Type.String()),
+});
+
+export type Topic = {
+  id: string;
+  name: string;
+  color?: string;
+};
+
+/**
+ * Mapping of tab URLs to topic IDs.
+ * Uses URL as stable identifier since tab IDs change across sessions.
+ */
+export type TabTopicAssignments = Record<string, string>;
