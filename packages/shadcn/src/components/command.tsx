@@ -10,24 +10,21 @@ import { Command as CommandPrimitive, defaultFilter } from 'cmdk';
 import { SearchIcon } from 'lucide-react';
 import * as React from 'react';
 
-const Command = Object.assign(
-  function Command({
-    className,
-    ...props
-  }: React.ComponentProps<typeof CommandPrimitive>) {
-    return (
-      <CommandPrimitive
-        data-slot="command"
-        className={cn(
-          'bg-popover text-popover-foreground flex h-full w-full flex-col overflow-hidden rounded-md',
-          className,
-        )}
-        {...props}
-      />
-    );
-  },
-  { defaultFilter },
-);
+function Command({
+  className,
+  ...props
+}: React.ComponentProps<typeof CommandPrimitive>) {
+  return (
+    <CommandPrimitive
+      data-slot="command"
+      className={cn(
+        'bg-popover text-popover-foreground flex h-full w-full flex-col overflow-hidden rounded-md',
+        className,
+      )}
+      {...props}
+    />
+  );
+}
 
 function CommandDialog({
   title = 'Command Palette',
@@ -171,8 +168,9 @@ function CommandShortcut({
   );
 }
 
+const CommandExport = Object.assign(Command, { defaultFilter });
 export {
-  Command,
+  CommandExport as Command,
   CommandDialog,
   CommandEmpty,
   CommandGroup,
