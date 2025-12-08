@@ -9,7 +9,7 @@ export default defineConfig({
     name: 'NullTab',
     description:
       'A new browsing experience that replaces tab chaos with intelligent organization.',
-    permissions: ['sidePanel', 'tabs', 'tabGroups', 'storage'],
+    permissions: ['sidePanel', 'tabs', 'tabGroups', 'storage', 'sessions'],
     commands: {
       _execute_action: {
         suggested_key: {
@@ -21,6 +21,7 @@ export default defineConfig({
     },
   },
   modules: ['@wxt-dev/module-react'],
+  imports: false,
   react: {
     vite: {
       babel: {

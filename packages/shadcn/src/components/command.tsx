@@ -6,7 +6,7 @@ import {
   DialogTitle,
 } from '@workspace/shadcn/components/dialog';
 import { cn } from '@workspace/shadcn/lib/utils';
-import { Command as CommandPrimitive } from 'cmdk';
+import { Command as CommandPrimitive, defaultFilter } from 'cmdk';
 import { SearchIcon } from 'lucide-react';
 import * as React from 'react';
 
@@ -168,8 +168,9 @@ function CommandShortcut({
   );
 }
 
+const CommandExport = Object.assign(Command, { defaultFilter });
 export {
-  Command,
+  CommandExport as Command,
   CommandDialog,
   CommandEmpty,
   CommandGroup,

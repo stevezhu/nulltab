@@ -1,5 +1,12 @@
 import { Button } from '@workspace/shadcn/components/button';
-import { FolderInput } from 'lucide-react';
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from '@workspace/shadcn/components/empty';
+import { FolderInput, Sparkles } from 'lucide-react';
 import { ReactNode, useMemo } from 'react';
 
 import { TabData, WindowData } from '#models/index.js';
@@ -47,9 +54,18 @@ export function WindowCardList({
   const isEmpty = tabsByWindow.size === 0;
   if (isEmpty) {
     return (
-      <div className="py-8 text-center text-muted-foreground">
-        {emptyMessage}
-      </div>
+      <Empty>
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <Sparkles />
+          </EmptyMedia>
+          <EmptyTitle>All tabs are managed</EmptyTitle>
+          <EmptyDescription>
+            {emptyMessage ??
+              'All your open tabs are being managed. Switch to "Managed" to see them.'}
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     );
   }
   return (
@@ -90,6 +106,8 @@ export function WindowCardList({
                     url={tab.url}
                     favIconUrl={tab.favIconUrl}
                     active={'active' in tab ? tab.active : undefined}
+                    lastAccessed={tab.lastAccessed}
+                    discarded={tab.discarded}
                     onClick={() => {
                       if (!tab.id) return;
                       onTabClick({ tabId: tab.id });

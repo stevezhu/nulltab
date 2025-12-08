@@ -1,7 +1,7 @@
 import { nanoid } from 'nanoid';
-import { type Static, StaticParse, Type } from 'typebox';
+import { type Static, StaticEncode, StaticParse, Type } from 'typebox';
 import { Value } from 'typebox/value';
-import { browser } from 'wxt/browser';
+import { storage } from 'wxt/utils/storage';
 
 const Timestamp = Type.Codec(Type.Number())
   .Decode((value) => new Date(value))
@@ -24,6 +24,24 @@ export const ClosedWindowSchema = Type.Object({
 
 export type ClosedWindow = StaticParse<typeof ClosedWindowSchema>;
 
+// Encoded type for storage (closedAt as number instead of Date)
+type EncodedClosedWindow = StaticEncode<typeof ClosedWindowSchema>;
+
+// Define storage items using WXT storage API
+const closedWindowsStorage = storage.defineItem<EncodedClosedWindow[]>(
+  'local:closedWindows',
+  {
+    fallback: [],
+  },
+);
+
+const managedWindowsStorage = storage.defineItem<number[]>(
+  'local:managedWindows',
+  {
+    fallback: [],
+  },
+);
+
 export interface WindowStorage {
   saveClosedWindow(window: Omit<ClosedWindow, 'id'>): Promise<ClosedWindow>;
   getClosedWindows(): Promise<ClosedWindow[]>;
@@ -32,9 +50,6 @@ export interface WindowStorage {
   getManagedWindows(): Promise<number[]>;
   removeManagedWindow(windowId: number): Promise<void>;
 }
-
-const STORAGE_KEY = 'closedWindows';
-const MANAGED_WINDOWS_KEY = 'managedWindows';
 
 export class LocalStorageWindowStorage implements WindowStorage {
   async saveClosedWindow(
@@ -46,73 +61,51 @@ export class LocalStorageWindowStorage implements WindowStorage {
       closedAt: window.closedAt,
       id: nanoid(),
     };
-    console.log('closedWindow', closedWindow);
 
-    const existingWindows = await this.getClosedWindows();
-    const updatedWindows = [...existingWindows, closedWindow];
-
-    await browser.storage.local.set({
-      [STORAGE_KEY]: updatedWindows.map((w) =>
-        Value.Encode(ClosedWindowSchema, w),
-      ),
-    });
-
-    const result = await browser.storage.local.get(STORAGE_KEY);
-    console.log('result', result);
+    const existingWindows = await closedWindowsStorage.getValue();
+    const encoded = Value.Encode(ClosedWindowSchema, closedWindow);
+    await closedWindowsStorage.setValue([...existingWindows, encoded]);
 
     return closedWindow;
   }
 
   async getClosedWindows(): Promise<ClosedWindow[]> {
-    const result = await browser.storage.local.get(STORAGE_KEY);
-    const data: unknown = result[STORAGE_KEY] ?? [];
+    const data = await closedWindowsStorage.getValue();
 
-    // Validate and filter valid closed windows
-    const validWindows = Array.isArray(data)
-      ? data.filter((item): item is ClosedWindow =>
-          Value.Check(ClosedWindowSchema, item),
-        )
-      : [];
-
-    return validWindows;
+    // Validate and decode valid closed windows
+    return data
+      .filter((item) => Value.Check(ClosedWindowSchema, item))
+      .map((item) => Value.Decode(ClosedWindowSchema, item));
   }
 
   async removeClosedWindow(id: string): Promise<void> {
-    const existingWindows = await this.getClosedWindows();
+    const existingWindows = await closedWindowsStorage.getValue();
     const updatedWindows = existingWindows.filter((w) => w.id !== id);
 
-    await browser.storage.local.set({ [STORAGE_KEY]: updatedWindows });
+    await closedWindowsStorage.setValue(updatedWindows);
   }
 
   async saveManagedWindow(windowId: number): Promise<void> {
-    const existingManagedWindows = await this.getManagedWindows();
+    const existingManagedWindows = await managedWindowsStorage.getValue();
     if (!existingManagedWindows.includes(windowId)) {
-      const updatedWindows = [...existingManagedWindows, windowId];
-      await browser.storage.local.set({
-        [MANAGED_WINDOWS_KEY]: updatedWindows,
-      });
+      await managedWindowsStorage.setValue([
+        ...existingManagedWindows,
+        windowId,
+      ]);
     }
   }
 
   async getManagedWindows(): Promise<number[]> {
-    const result = await browser.storage.local.get(MANAGED_WINDOWS_KEY);
-    const data: unknown = result[MANAGED_WINDOWS_KEY] ?? [];
-
-    // Validate and filter valid window IDs
-    const validWindowIds = Array.isArray(data)
-      ? data.filter((item): item is number => typeof item === 'number')
-      : [];
-
-    return validWindowIds;
+    return managedWindowsStorage.getValue();
   }
 
   async removeManagedWindow(windowId: number): Promise<void> {
-    const existingManagedWindows = await this.getManagedWindows();
+    const existingManagedWindows = await managedWindowsStorage.getValue();
     const updatedWindows = existingManagedWindows.filter(
       (id) => id !== windowId,
     );
 
-    await browser.storage.local.set({ [MANAGED_WINDOWS_KEY]: updatedWindows });
+    await managedWindowsStorage.setValue(updatedWindows);
   }
 }
 

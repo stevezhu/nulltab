@@ -24,6 +24,7 @@ catalog:
   tailwindcss: ^4.1.17
   typescript: ^5.9.3
   vite: ^7.2.4
+  vitest: ^4.0.13
 
 catalogs:
   expo:

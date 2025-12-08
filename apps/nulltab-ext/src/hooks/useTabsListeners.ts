@@ -1,20 +1,26 @@
-import { useSuspenseQuery } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
+import { browser } from 'wxt/browser';
 
-export function useTabsQuery() {
-  const tabsQuery = useSuspenseQuery({
-    queryKey: ['tabs'],
-    queryFn: () => browser.tabs.query({}),
-  });
+import { tabsKeys } from '#api/queryOptions/tabs.js';
+
+/**
+ * Listeners to refetch the tabs query whenever tabs change.
+ */
+export function useTabsListeners() {
+  const queryClient = useQueryClient();
 
   useEffect(() => {
-    const handleRefetch = () => void tabsQuery.refetch();
+    const handleRefetch = () =>
+      void queryClient.invalidateQueries({
+        queryKey: tabsKeys.root,
+      });
 
     browser.tabs.onCreated.addListener(handleRefetch);
     browser.tabs.onUpdated.addListener(handleRefetch);
     browser.tabs.onRemoved.addListener(handleRefetch);
     browser.tabs.onMoved.addListener(handleRefetch);
     browser.tabs.onActivated.addListener(handleRefetch);
-
     return () => {
       browser.tabs.onCreated.removeListener(handleRefetch);
       browser.tabs.onUpdated.removeListener(handleRefetch);
@@ -22,7 +28,5 @@ export function useTabsQuery() {
       browser.tabs.onMoved.removeListener(handleRefetch);
       browser.tabs.onActivated.removeListener(handleRefetch);
     };
-  }, [tabsQuery]);
-
-  return tabsQuery;
+  }, [queryClient]);
 }
