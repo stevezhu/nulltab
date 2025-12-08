@@ -1,5 +1,5 @@
 import { defineProxyService } from '@webext-core/proxy-service';
-import { browser } from 'wxt/browser';
+import { type Browser, browser } from 'wxt/browser';
 
 import { hasAtLeastOne } from '#utils/array.js';
 import { getMainTabGroup, getTabIds, sortTabs } from '#utils/management.js';
