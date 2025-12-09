@@ -189,6 +189,13 @@ export default function App({ isPopup }: { isPopup?: boolean }) {
     },
   });
 
+  const reorderTopics = useMutation({
+    mutationFn: (topicIds: string[]) => topicStorage.reorderTopics(topicIds),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: topicsKeys.root });
+    },
+  });
+
   return (
     <div className="flex h-full flex-col">
       {/* Reverse the markup order and use flex order to overlap correctly.
@@ -220,6 +227,9 @@ export default function App({ isPopup }: { isPopup?: boolean }) {
             }}
             onUpdateTopic={(topic) => {
               updateTopic.mutate(topic);
+            }}
+            onReorderTopics={(topicIds) => {
+              reorderTopics.mutate(topicIds);
             }}
           />
         </div>

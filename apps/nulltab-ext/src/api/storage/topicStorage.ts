@@ -21,6 +21,7 @@ export interface TopicStorage {
   saveTopic(topic: Omit<Topic, 'id'>): Promise<Topic>;
   updateTopic(topic: Topic): Promise<void>;
   deleteTopic(id: string): Promise<void>;
+  reorderTopics(topicIds: string[]): Promise<void>;
 
   // Tab assignments
   getTabAssignments(): Promise<TabTopicAssignments>;
@@ -69,6 +70,18 @@ export class LocalStorageTopicStorage implements TopicStorage {
       }
     }
     await tabAssignmentsStorage.setValue(updatedAssignments);
+  }
+
+  async reorderTopics(topicIds: string[]): Promise<void> {
+    const existingTopics = await this.getTopics();
+    const topicMap = new Map(existingTopics.map((t) => [t.id, t]));
+
+    // Reorder based on the provided ID order
+    const reorderedTopics = topicIds
+      .map((id) => topicMap.get(id))
+      .filter((t): t is Topic => t !== undefined);
+
+    await topicsStorage.setValue(reorderedTopics);
   }
 
   async getTabAssignments(): Promise<TabTopicAssignments> {

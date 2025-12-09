@@ -1,3 +1,24 @@
+import {
+  closestCenter,
+  DndContext,
+  type DragEndEvent,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  restrictToFirstScrollableAncestor,
+  restrictToVerticalAxis,
+} from '@dnd-kit/modifiers';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Badge } from '@workspace/shadcn/components/badge';
 import { Button } from '@workspace/shadcn/components/button';
 import {
@@ -13,8 +34,15 @@ import {
   DropdownMenuTrigger,
 } from '@workspace/shadcn/components/dropdown-menu';
 import { cn } from '@workspace/shadcn/lib/utils';
-import { Check, ChevronDown, Palette, X } from 'lucide-react';
-import { useMemo } from 'react';
+import {
+  Check,
+  ChevronDown,
+  GripVertical,
+  Palette,
+  Trash2,
+  X,
+} from 'lucide-react';
+import { useMemo, useState } from 'react';
 
 import { CreateTopicDialog } from '#components/CreateTopicDialog.js';
 import { type Topic } from '#models/index.js';
@@ -51,6 +79,7 @@ export type TopicTabsProps = {
   onCreateTopic: (name: string, color?: string) => void;
   onDeleteTopic: (id: string) => void;
   onUpdateTopic: (topic: Topic) => void;
+  onReorderTopics: (topicIds: string[]) => void;
 };
 
 export function TopicTabs({
@@ -61,6 +90,7 @@ export function TopicTabs({
   onCreateTopic,
   onDeleteTopic,
   onUpdateTopic,
+  onReorderTopics,
 }: TopicTabsProps) {
   const { visibleTopics, overflowTopics, selectedOverflowTopic } =
     useMemo(() => {
@@ -120,23 +150,28 @@ export function TopicTabs({
         {/* Overflow dropdown - shows when there are more topics than MAX_VISIBLE_TOPICS */}
         {overflowTopics.length > 0 && (
           <OverflowTopicsDropdown
-            topics={topics}
             overflowTopics={overflowTopics}
             counts={counts}
             selectedTopic={selectedTopic}
             selectedOverflowTopic={selectedOverflowTopic}
             onSelectTopic={onSelectTopic}
             onDeleteTopic={onDeleteTopic}
-            onUpdateTopic={onUpdateTopic}
           />
         )}
 
         {/* Add topic button */}
         <CreateTopicDialog onCreateTopic={onCreateTopic} />
 
-        {/* Edit topics dropdown - only show if no overflow (otherwise edit is in overflow menu) */}
-        {topics.length > 0 && overflowTopics.length === 0 && (
-          <EditTopicsDropdown topics={topics} onUpdateTopic={onUpdateTopic} />
+        {/* Edit topics dropdown */}
+        {topics.length > 0 && (
+          <div className="ml-auto">
+            <EditTopicsDropdown
+              topics={topics}
+              onUpdateTopic={onUpdateTopic}
+              onDeleteTopic={onDeleteTopic}
+              onReorderTopics={onReorderTopics}
+            />
+          </div>
         )}
       </div>
     </div>
@@ -213,26 +248,149 @@ function TopicPill({
   );
 }
 
+// Sortable topic item for drag and drop
+type SortableTopicItemProps = {
+  topic: Topic;
+  onUpdateTopic: (topic: Topic) => void;
+  onDeleteTopic: (id: string) => void;
+  isDraggingAny: boolean;
+};
+
+function SortableTopicItem({
+  topic,
+  onUpdateTopic,
+  onDeleteTopic,
+  isDraggingAny,
+}: SortableTopicItemProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: topic.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : undefined,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        'relative rounded-sm',
+        isDragging && 'bg-accent opacity-90 shadow-lg',
+      )}
+    >
+      <DropdownMenuSub open={isDraggingAny ? false : undefined}>
+        <DropdownMenuSubTrigger className="w-full">
+          <button
+            type="button"
+            className={cn(
+              `
+                mr-1 cursor-grab touch-none rounded-sm p-0.5
+                text-muted-foreground
+                hover:bg-accent hover:text-foreground
+              `,
+              isDragging && 'cursor-grabbing',
+            )}
+            {...attributes}
+            {...listeners}
+          >
+            <GripVertical className="h-3 w-3" />
+          </button>
+          <span
+            className="mr-2 h-3 w-3 rounded-full"
+            style={{ backgroundColor: topic.color || '#888' }}
+          />
+          <span className="flex-1 truncate">{topic.name}</span>
+        </DropdownMenuSubTrigger>
+        <DropdownMenuSubContent>
+          <DropdownMenuLabel className="flex items-center gap-2">
+            <Palette className="h-3.5 w-3.5" />
+            Change Color
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <div className="grid grid-cols-4 gap-1 p-2">
+            {TOPIC_COLORS.map((color) => (
+              <button
+                key={color}
+                type="button"
+                className={cn(
+                  `
+                    relative h-6 w-6 rounded-full transition-transform
+                    hover:scale-110
+                  `,
+                  `
+                    focus:ring-2 focus:ring-offset-2
+                    focus:ring-offset-background focus:outline-none
+                  `,
+                )}
+                style={{
+                  backgroundColor: color,
+                  // @ts-expect-error - CSS custom property for Tailwind ring color
+                  '--tw-ring-color': color,
+                }}
+                onClick={() => {
+                  onUpdateTopic({ ...topic, color });
+                }}
+              >
+                {topic.color === color && (
+                  <Check
+                    className={`
+                      absolute inset-0 m-auto h-3.5 w-3.5 text-white
+                      drop-shadow-sm
+                    `}
+                  />
+                )}
+              </button>
+            ))}
+          </div>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onClick={() => {
+              onUpdateTopic({ ...topic, color: undefined });
+            }}
+          >
+            <X className="mr-2 h-4 w-4" />
+            Remove color
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            variant="destructive"
+            onClick={() => {
+              onDeleteTopic(topic.id);
+            }}
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Delete topic
+          </DropdownMenuItem>
+        </DropdownMenuSubContent>
+      </DropdownMenuSub>
+    </div>
+  );
+}
+
 type OverflowTopicsDropdownProps = {
-  topics: Topic[];
   overflowTopics: Topic[];
   counts?: TopicCounts;
   selectedTopic: TopicFilterValue;
   selectedOverflowTopic?: Topic;
   onSelectTopic: (topic: TopicFilterValue) => void;
   onDeleteTopic: (id: string) => void;
-  onUpdateTopic: (topic: Topic) => void;
 };
 
 function OverflowTopicsDropdown({
-  topics,
   overflowTopics,
   counts,
   selectedTopic,
   selectedOverflowTopic,
   onSelectTopic,
   onDeleteTopic,
-  onUpdateTopic,
 }: OverflowTopicsDropdownProps) {
   return (
     <DropdownMenu>
@@ -315,75 +473,6 @@ function OverflowTopicsDropdown({
             </DropdownMenuItem>
           ))}
         </DropdownMenuGroup>
-
-        <DropdownMenuSeparator />
-
-        {/* Edit all topics */}
-        <DropdownMenuGroup>
-          <DropdownMenuLabel>Edit Topics</DropdownMenuLabel>
-          {topics.map((topic) => (
-            <DropdownMenuSub key={topic.id}>
-              <DropdownMenuSubTrigger>
-                <span
-                  className="mr-2 h-3 w-3 rounded-full"
-                  style={{ backgroundColor: topic.color || '#888' }}
-                />
-                <span className="flex-1 truncate">{topic.name}</span>
-              </DropdownMenuSubTrigger>
-              <DropdownMenuSubContent>
-                <DropdownMenuLabel className="flex items-center gap-2">
-                  <Palette className="h-3.5 w-3.5" />
-                  Change Color
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <div className="grid grid-cols-4 gap-1 p-2">
-                  {TOPIC_COLORS.map((color) => (
-                    <button
-                      key={color}
-                      type="button"
-                      className={cn(
-                        `
-                          relative h-6 w-6 rounded-full transition-transform
-                          hover:scale-110
-                        `,
-                        `
-                          focus:ring-2 focus:ring-offset-2
-                          focus:ring-offset-background focus:outline-none
-                        `,
-                      )}
-                      style={{
-                        backgroundColor: color,
-                        // @ts-expect-error - CSS custom property for Tailwind ring color
-                        '--tw-ring-color': color,
-                      }}
-                      onClick={() => {
-                        onUpdateTopic({ ...topic, color });
-                      }}
-                    >
-                      {topic.color === color && (
-                        <Check
-                          className={`
-                            absolute inset-0 m-auto h-3.5 w-3.5 text-white
-                            drop-shadow-sm
-                          `}
-                        />
-                      )}
-                    </button>
-                  ))}
-                </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => {
-                    onUpdateTopic({ ...topic, color: undefined });
-                  }}
-                >
-                  <X className="mr-2 h-4 w-4" />
-                  Remove color
-                </DropdownMenuItem>
-              </DropdownMenuSubContent>
-            </DropdownMenuSub>
-          ))}
-        </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -392,12 +481,46 @@ function OverflowTopicsDropdown({
 type EditTopicsDropdownProps = {
   topics: Topic[];
   onUpdateTopic: (topic: Topic) => void;
+  onDeleteTopic: (id: string) => void;
+  onReorderTopics: (topicIds: string[]) => void;
 };
 
 function EditTopicsDropdown({
   topics,
   onUpdateTopic,
+  onDeleteTopic,
+  onReorderTopics,
 }: EditTopicsDropdownProps) {
+  const [isDragging, setIsDragging] = useState(false);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
+
+  const handleDragStart = () => {
+    setIsDragging(true);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    setIsDragging(false);
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = topics.findIndex((t) => t.id === active.id);
+      const newIndex = topics.findIndex((t) => t.id === over.id);
+
+      const newOrder = arrayMove(topics, oldIndex, newIndex);
+      onReorderTopics(newOrder.map((t) => t.id));
+    }
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -414,70 +537,38 @@ function EditTopicsDropdown({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel>Edit Topics</DropdownMenuLabel>
+        <DropdownMenuLabel className="flex items-center gap-2">
+          Edit Topics
+          <span className="text-xs font-normal text-muted-foreground">
+            (drag to reorder)
+          </span>
+        </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {topics.map((topic) => (
-          <DropdownMenuSub key={topic.id}>
-            <DropdownMenuSubTrigger>
-              <span
-                className="mr-2 h-3 w-3 rounded-full"
-                style={{ backgroundColor: topic.color || '#888' }}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          modifiers={[
+            restrictToVerticalAxis,
+            restrictToFirstScrollableAncestor,
+          ]}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={topics.map((t) => t.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            {topics.map((topic) => (
+              <SortableTopicItem
+                key={topic.id}
+                topic={topic}
+                onUpdateTopic={onUpdateTopic}
+                onDeleteTopic={onDeleteTopic}
+                isDraggingAny={isDragging}
               />
-              <span className="flex-1 truncate">{topic.name}</span>
-            </DropdownMenuSubTrigger>
-            <DropdownMenuSubContent>
-              <DropdownMenuLabel className="flex items-center gap-2">
-                <Palette className="h-3.5 w-3.5" />
-                Change Color
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <div className="grid grid-cols-4 gap-1 p-2">
-                {TOPIC_COLORS.map((color) => (
-                  <button
-                    key={color}
-                    type="button"
-                    className={cn(
-                      `
-                        relative h-6 w-6 rounded-full transition-transform
-                        hover:scale-110
-                      `,
-                      `
-                        focus:ring-2 focus:ring-offset-2
-                        focus:ring-offset-background focus:outline-none
-                      `,
-                    )}
-                    style={{
-                      backgroundColor: color,
-                      // @ts-expect-error - CSS custom property for Tailwind ring color
-                      '--tw-ring-color': color,
-                    }}
-                    onClick={() => {
-                      onUpdateTopic({ ...topic, color });
-                    }}
-                  >
-                    {topic.color === color && (
-                      <Check
-                        className={`
-                          absolute inset-0 m-auto h-3.5 w-3.5 text-white
-                          drop-shadow-sm
-                        `}
-                      />
-                    )}
-                  </button>
-                ))}
-              </div>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => {
-                  onUpdateTopic({ ...topic, color: undefined });
-                }}
-              >
-                <X className="mr-2 h-4 w-4" />
-                Remove color
-              </DropdownMenuItem>
-            </DropdownMenuSubContent>
-          </DropdownMenuSub>
-        ))}
+            ))}
+          </SortableContext>
+        </DndContext>
       </DropdownMenuContent>
     </DropdownMenu>
   );
