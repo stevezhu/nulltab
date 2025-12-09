@@ -428,19 +428,6 @@ function OverflowTopicsDropdown({
                   {counts.byTopic[selectedOverflowTopic.id]}
                 </span>
               )}
-              <button
-                type="button"
-                className={`
-                  ml-1 rounded-full p-0.5
-                  hover:bg-white/20
-                `}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDeleteTopic(selectedOverflowTopic.id);
-                }}
-              >
-                <X className="h-3 w-3" />
-              </button>
             </>
           ) : (
             <>+{overflowTopics.length} more</>
@@ -451,7 +438,6 @@ function OverflowTopicsDropdown({
       <DropdownMenuContent align="start" className="w-56">
         {/* Overflow topics for selection */}
         <DropdownMenuGroup>
-          <DropdownMenuLabel>More Topics</DropdownMenuLabel>
           {overflowTopics.map((topic) => (
             <DropdownMenuItem
               key={topic.id}
@@ -470,6 +456,19 @@ function OverflowTopicsDropdown({
                 </span>
               )}
               {selectedTopic === topic.id && <Check className="ml-2 h-4 w-4" />}
+              <button
+                type="button"
+                className={`
+                  ml-2 rounded-full p-0.5 text-muted-foreground
+                  hover:bg-destructive/20 hover:text-destructive
+                `}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteTopic(topic.id);
+                }}
+              >
+                <X className="h-3 w-3" />
+              </button>
             </DropdownMenuItem>
           ))}
         </DropdownMenuGroup>
