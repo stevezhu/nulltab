@@ -170,14 +170,6 @@ export default function App({ isPopup }: { isPopup?: boolean }) {
     },
   });
 
-  const updateTopic = useMutation({
-    mutationFn: (topic: { id: string; name: string; color?: string }) =>
-      topicStorage.updateTopic(topic),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: topicsKeys.root });
-    },
-  });
-
   const deleteTopic = useMutation({
     mutationFn: (id: string) => topicStorage.deleteTopic(id),
     onSuccess: async () => {
@@ -186,6 +178,14 @@ export default function App({ isPopup }: { isPopup?: boolean }) {
       setSelectedTopic((current) =>
         current === 'all' || current === 'uncategorized' ? current : 'all',
       );
+    },
+  });
+
+  const updateTopic = useMutation({
+    mutationFn: (topic: { id: string; name: string; color?: string }) =>
+      topicStorage.updateTopic(topic),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: topicsKeys.root });
     },
   });
 
@@ -215,11 +215,11 @@ export default function App({ isPopup }: { isPopup?: boolean }) {
             onCreateTopic={(name, color) => {
               createTopic.mutate({ name, color });
             }}
-            onUpdateTopic={(topic) => {
-              updateTopic.mutate(topic);
-            }}
             onDeleteTopic={(id) => {
               deleteTopic.mutate(id);
+            }}
+            onUpdateTopic={(topic) => {
+              updateTopic.mutate(topic);
             }}
           />
         </div>
