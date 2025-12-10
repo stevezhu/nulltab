@@ -32,8 +32,8 @@ import TopBar, {
 import {
   type TopicCounts,
   TopicFilterValue,
-  TopicTabs,
-} from '#components/TopicTabs.js';
+  TopicsBar,
+} from '#components/TopicsBar.js';
 import {
   WindowCard,
   WindowCardTab,
@@ -214,7 +214,7 @@ export default function App({ isPopup }: { isPopup?: boolean }) {
       {/* Topic Tabs - only show in managed view */}
       {filterMode === 'managed' && (
         <div className="order-2">
-          <TopicTabs
+          <TopicsBar
             topics={topics}
             counts={topicCounts}
             selectedTopic={selectedTopic}

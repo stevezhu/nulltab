@@ -10,7 +10,7 @@ import {
 import { Input } from '@workspace/shadcn/components/input';
 import { cn } from '@workspace/shadcn/lib/utils';
 import { Plus } from 'lucide-react';
-import { type ReactNode, useState } from 'react';
+import { ComponentProps, type ReactNode, useState } from 'react';
 
 const TOPIC_COLORS: [string, ...string[]] = [
   '#ef4444', // red
@@ -25,12 +25,12 @@ const TOPIC_COLORS: [string, ...string[]] = [
 
 export type CreateTopicDialogProps = {
   onCreateTopic: (name: string, color?: string) => void;
-  trigger?: ReactNode;
+  children?: ReactNode;
 };
 
 export function CreateTopicDialog({
   onCreateTopic,
-  trigger,
+  children,
 }: CreateTopicDialogProps) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
@@ -47,21 +47,7 @@ export function CreateTopicDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {trigger ?? (
-          <Button
-            variant="ghost"
-            size="sm"
-            className={`
-              h-7 gap-1 px-2 text-muted-foreground
-              hover:text-foreground
-            `}
-          >
-            <Plus className="h-3.5 w-3.5" />
-            <span className="text-xs">Add</span>
-          </Button>
-        )}
-      </DialogTrigger>
+      <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Create Topic</DialogTitle>
@@ -113,5 +99,14 @@ export function CreateTopicDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+export function CreateTopicButton(props: ComponentProps<typeof Button>) {
+  return (
+    <Button variant="ghost" size="sm" {...props}>
+      <Plus />
+      <span>Add</span>
+    </Button>
   );
 }

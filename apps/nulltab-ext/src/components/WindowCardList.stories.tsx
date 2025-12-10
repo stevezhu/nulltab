@@ -22,6 +22,7 @@ const mockTabs: TabData[] = [
     url: 'https://www.google.com',
     favIconUrl: 'https://www.google.com/favicon.ico',
     active: true,
+    discarded: false,
   },
   {
     id: 2,
@@ -30,6 +31,7 @@ const mockTabs: TabData[] = [
     url: 'https://www.youtube.com',
     favIconUrl: 'https://www.youtube.com/favicon.ico',
     active: false,
+    discarded: false,
   },
   {
     id: 3,
@@ -38,6 +40,7 @@ const mockTabs: TabData[] = [
     url: 'https://www.facebook.com',
     favIconUrl: 'https://www.facebook.com/favicon.ico',
     active: false,
+    discarded: false,
   },
   {
     id: 4,
@@ -46,6 +49,7 @@ const mockTabs: TabData[] = [
     url: 'https://www.github.com',
     favIconUrl: 'https://www.github.com/favicon.ico',
     active: false,
+    discarded: false,
   },
   {
     id: 5,
@@ -54,6 +58,7 @@ const mockTabs: TabData[] = [
     url: 'https://stackoverflow.com',
     favIconUrl: 'https://stackoverflow.com/favicon.ico',
     active: false,
+    discarded: false,
   },
 ];
 
@@ -95,6 +100,7 @@ export const ManyWindows = meta.story({
         url: 'https://www.reddit.com',
         favIconUrl: 'https://www.reddit.com/favicon.ico',
         active: false,
+        discarded: false,
       },
       {
         id: 9,
@@ -103,6 +109,7 @@ export const ManyWindows = meta.story({
         url: 'https://www.twitter.com',
         favIconUrl: 'https://www.twitter.com/favicon.ico',
         active: false,
+        discarded: false,
       },
     ],
     currentWindowId: 100,
