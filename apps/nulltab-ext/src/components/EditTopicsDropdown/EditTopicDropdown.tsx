@@ -8,44 +8,9 @@ import {
   DropdownMenuTrigger,
 } from '@workspace/shadcn/components/dropdown-menu';
 import { cn } from '@workspace/shadcn/lib/utils';
-import {
-  Check,
-  GripVertical,
-  MoreHorizontal,
-  Palette,
-  Trash2,
-  X,
-} from 'lucide-react';
-import { ReactNode } from 'react';
+import { Check, MoreHorizontal, Palette, Trash2, X } from 'lucide-react';
 
 import { Topic } from '#models/index.js';
-
-export function EditTopicDropdownItem({
-  topic,
-  children,
-}: {
-  topic: Topic;
-  children?: ReactNode;
-}) {
-  return (
-    <div
-      className={`
-        flex items-center gap-2
-        hover:cursor-grab
-      `}
-    >
-      <div className="inline-block">
-        <GripVertical className="size-4" />
-      </div>
-      <span
-        className="size-3 rounded-full"
-        style={{ backgroundColor: topic.color || '#888' }}
-      />
-      <span className="flex-1 truncate">{topic.name}</span>
-      {children}
-    </div>
-  );
-}
 
 const TOPIC_COLORS: string[] = [
   '#ef4444', // red
@@ -58,6 +23,11 @@ const TOPIC_COLORS: string[] = [
   '#ec4899', // pink
 ];
 
+/**
+ * Dropdown menu for editing a single topic.
+ * @param props
+ * @returns
+ */
 export function EditTopicDropdown({
   topic,
   onUpdateTopic,
