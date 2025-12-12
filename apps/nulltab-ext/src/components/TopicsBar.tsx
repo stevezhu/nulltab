@@ -8,7 +8,7 @@ import {
 import {
   EditTopicsButton,
   EditTopicsDropdown,
-} from '#components/EditTopicsDropdown.js';
+} from '#components/EditTopicsDropdown/EditTopicsDropdown.js';
 import { MoreTopicsDropdown } from '#components/MoreTopicsDropdown.js';
 import {
   TopicPill,
