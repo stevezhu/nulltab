@@ -174,7 +174,11 @@ export function WindowCardTab({
             discarded && 'text-muted-foreground italic',
           )}
         >
-          {title ?? 'Untitled'}
+          {title != undefined
+            ? isValidHttpUrl(title)
+              ? getHostname(title)
+              : title
+            : 'Untitled'}
         </div>
         <div className="text-xs wrap-anywhere break-all text-muted-foreground">
           {getHostname(url)}
@@ -352,4 +356,16 @@ function formatLastAccessed(timestamp: number, now: number): string {
 
   // Older than a week: show date
   return date.toLocaleDateString();
+}
+
+function isValidHttpUrl(urlString: string) {
+  let url;
+
+  try {
+    url = new URL(urlString);
+  } catch (_) {
+    return false;
+  }
+
+  return url.protocol === 'http:' || url.protocol === 'https:';
 }

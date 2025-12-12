@@ -19,7 +19,10 @@ export function TopicPill({
     <Badge
       variant={selected ? 'default' : 'outline'}
       className={cn(
-        'cursor-pointer gap-1.5 px-3 py-1 text-xs transition-colors select-none',
+        `
+          flex cursor-pointer items-center gap-1.5 px-3 py-1 text-xs
+          transition-colors select-none
+        `,
         selected && 'bg-primary text-primary-foreground',
         !selected && 'hover:bg-accent',
       )}
@@ -50,14 +53,14 @@ export function TopicPillLabel({
 }) {
   return (
     <>
-      {color && (
+      {color !== undefined && (
         <span
           className="h-2 w-2 rounded-full"
           style={{ backgroundColor: selected ? 'currentColor' : color }}
         />
       )}
       {children}
-      {count && <span className="ml-0.5 tabular-nums">{count}</span>}
+      {count !== undefined && <span className="tabular-nums">{count}</span>}
     </>
   );
 }
@@ -67,7 +70,7 @@ export function TopicPillDeleteButton({ onClick }: { onClick: () => void }) {
     <button
       type="button"
       className={`
-        ml-1 rounded-full p-0.5
+        rounded-full p-0.5
         hover:bg-white/20
       `}
       onClick={(e) => {

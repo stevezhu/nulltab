@@ -146,12 +146,11 @@ export function TopicsBar({
             </TopicPill>
           </MoreTopicsDropdown>
         )}
-
-        {topics.length > 0 && (
-          <div className="ml-auto flex items-center gap-2">
-            <CreateTopicDialog onCreateTopic={onCreateTopic}>
-              <CreateTopicButton />
-            </CreateTopicDialog>
+        <div className="ml-auto flex items-center gap-2">
+          <CreateTopicDialog onCreateTopic={onCreateTopic}>
+            <CreateTopicButton />
+          </CreateTopicDialog>
+          {topics.length > 0 && (
             <EditTopicsDropdown
               topics={topics}
               onUpdateTopic={onUpdateTopic}
@@ -160,8 +159,8 @@ export function TopicsBar({
             >
               <EditTopicsButton />
             </EditTopicsDropdown>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
