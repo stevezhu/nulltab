@@ -174,7 +174,7 @@ export function WindowCardTab({
             discarded && 'text-muted-foreground italic',
           )}
         >
-          {title ?? 'Untitled'}
+          {title != undefined ? title : 'Untitled'}
         </div>
         <div className="text-xs wrap-anywhere break-all text-muted-foreground">
           {getHostname(url)}

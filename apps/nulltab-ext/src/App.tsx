@@ -32,8 +32,8 @@ import TopBar, {
 import {
   type TopicCounts,
   TopicFilterValue,
-  TopicTabs,
-} from '#components/TopicTabs.js';
+  TopicsBar,
+} from '#components/TopicsBar.js';
 import {
   WindowCard,
   WindowCardTab,
@@ -181,6 +181,21 @@ export default function App({ isPopup }: { isPopup?: boolean }) {
     },
   });
 
+  const updateTopic = useMutation({
+    mutationFn: (topic: { id: string; name: string; color?: string }) =>
+      topicStorage.updateTopic(topic),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: topicsKeys.root });
+    },
+  });
+
+  const reorderTopics = useMutation({
+    mutationFn: (topicIds: string[]) => topicStorage.reorderTopics(topicIds),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: topicsKeys.root });
+    },
+  });
+
   return (
     <div className="flex h-full flex-col">
       {/* Reverse the markup order and use flex order to overlap correctly.
@@ -199,7 +214,7 @@ export default function App({ isPopup }: { isPopup?: boolean }) {
       {/* Topic Tabs - only show in managed view */}
       {filterMode === 'managed' && (
         <div className="order-2">
-          <TopicTabs
+          <TopicsBar
             topics={topics}
             counts={topicCounts}
             selectedTopic={selectedTopic}
@@ -209,6 +224,12 @@ export default function App({ isPopup }: { isPopup?: boolean }) {
             }}
             onDeleteTopic={(id) => {
               deleteTopic.mutate(id);
+            }}
+            onUpdateTopic={(topic) => {
+              updateTopic.mutate(topic);
+            }}
+            onReorderTopics={(topicIds) => {
+              reorderTopics.mutate(topicIds);
             }}
           />
         </div>

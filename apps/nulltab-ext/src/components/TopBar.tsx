@@ -49,9 +49,9 @@ export default function TopBar({
           <SelectContent>
             <SelectItem value="managed">
               <Sparkles className="text-yellow-500" />
-              Managed
+              All
             </SelectItem>
-            <SelectItem value="unmanaged">Unmanaged</SelectItem>
+            <SelectItem value="unmanaged">Ungrouped</SelectItem>
           </SelectContent>
         </Select>
       </div>
