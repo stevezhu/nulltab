@@ -2,17 +2,29 @@ import { defineProxyService } from '@webext-core/proxy-service';
 import { type Browser, browser } from 'wxt/browser';
 
 import { hasAtLeastOne } from '#utils/array.js';
-import { getMainTabGroup, getTabIds, sortTabs } from '#utils/management.js';
+import { createMainTabGroup, getMainTabGroup } from '#utils/management.js';
+import { getTabIds, reloadAndFocusTab, sortTabs } from '#utils/tabs.js';
 
 type Tab = Browser.tabs.Tab;
 
+/**
+ * The maximum number of recent tabs to keep ungrouped when switching to a new tab.
+ *
+ * This is used to keep the target tab and up to 4 most recently accessed tabs
+ * ungrouped, while grouping all other tabs in the main window.
+ */
 const MAX_RECENT_TABS = 4;
 
 /**
- * Focuses the given tab and groups/ungroups tabs as needed in the main window.
+ * Switches to the given tab and manages grouping/ungrouping in the main window.
+ *
+ * If the tab is not in the main window or is pinned, it simply focuses the tab.
+ * Otherwise, it manages tab grouping by keeping the target tab and up to 4 most
+ * recently accessed tabs ungrouped, while grouping all other tabs in the main window.
+ *
  * @param options
  */
-async function focusTab({
+async function switchTab({
   tabId,
   mainTabGroupId,
   mainWindowId,
@@ -32,11 +44,7 @@ async function focusTab({
     !isTargetTabInMainWindow ||
     targetTab.pinned
   ) {
-    await Promise.all([
-      targetTab.discarded && browser.tabs.reload(tabId),
-      browser.tabs.update(tabId, { active: true }),
-      browser.windows.update(targetTab.windowId, { focused: true }),
-    ]);
+    await reloadAndFocusTab(targetTab);
     return;
   }
 
@@ -71,25 +79,23 @@ async function focusTab({
       }),
   ]);
 
-  // 2. Reload discarded tabs
-  for (const tab of tabsToOpen) {
-    if (tab.id && tab.discarded) {
-      await browser.tabs.reload(tab.id);
-    }
-  }
-
-  // 3. Collapse the tab group, move tabs in order, and focus the target tab
+  // 2. Collapse the tab group, move tabs in order, and focus the target tab
   await Promise.all([
     browser.tabGroups.update(mainTabGroupId, {
       collapsed: true,
     }),
     // Move all open tabs to end: target tab first, then recent tabs (most to least recent)
     browser.tabs.move(tabsToOpenIds, { index: -1 }),
-    browser.tabs.update(tabId, { active: true }),
-    browser.windows.update(mainWindowId, { focused: true }),
+    reloadAndFocusTab(targetTab),
   ]);
 }
 
+/**
+ * Suspends (discards) tabs in the main tab group that haven't been accessed in 24 hours.
+ *
+ * This helps free up memory by discarding tabs that haven't been used recently.
+ * The tabs remain in the browser but their content is unloaded until they're accessed again.
+ */
 async function suspendStaleTabs() {
   const mainTabGroup = await getMainTabGroup();
   if (!mainTabGroup) return;
@@ -104,6 +110,13 @@ async function suspendStaleTabs() {
   }
 }
 
+/**
+ * Suspends (discards) all non-suspended tabs in the main tab group.
+ *
+ * This frees up memory by discarding all tabs in the main group, regardless of
+ * when they were last accessed. The tabs remain in the browser but their content
+ * is unloaded until they're accessed again.
+ */
 async function suspendGroupedTabs() {
   const mainTabGroup = await getMainTabGroup();
   if (!mainTabGroup) return;
@@ -115,17 +128,29 @@ async function suspendGroupedTabs() {
   }
 }
 
-function createTabService() {
-  return {
-    focusTab,
-
-    // commands
-    suspendStaleTabs,
-    suspendGroupedTabs,
-  };
+/**
+ * Manages all tabs in the specified window by adding them to the main tab group.
+ *
+ * @param options
+ */
+async function manageWindow({ windowId }: { windowId: number }) {
+  const tabs = await browser.tabs.query({ windowId });
+  const tabIds = tabs
+    .map((tab) => tab.id)
+    .filter((id): id is number => Boolean(id));
+  await createMainTabGroup({ tabIds });
 }
 
 export const [registerTabService, getTabService] = defineProxyService(
   'TabService',
-  createTabService,
+  function createTabService() {
+    return {
+      switchTab,
+      manageWindow,
+
+      // commands
+      suspendStaleTabs,
+      suspendGroupedTabs,
+    };
+  },
 );

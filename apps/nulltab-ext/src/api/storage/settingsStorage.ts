@@ -1,12 +1,10 @@
 import { storage } from 'wxt/utils/storage';
 
 export interface Settings {
-  useNewtabOverride: boolean;
+  // Placeholder for future settings
 }
 
-const defaultSettings: Settings = {
-  useNewtabOverride: true,
-};
+const defaultSettings: Settings = {};
 
 const settingsStorage = storage.defineItem<Settings>('local:settings', {
   fallback: defaultSettings,
@@ -21,10 +19,4 @@ export async function updateSettings(
 ): Promise<void> {
   const current = await getSettings();
   await settingsStorage.setValue({ ...current, ...updates });
-}
-
-export function watchSettings(
-  callback: (settings: Settings) => void,
-): () => void {
-  return settingsStorage.watch(callback);
 }

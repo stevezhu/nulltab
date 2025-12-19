@@ -11,4 +11,3 @@ export const settingsQueryOptions = queryOptions({
   queryKey: settingsKeys.all(),
   queryFn: () => getSettings(),
 });
-

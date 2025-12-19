@@ -43,12 +43,8 @@ import { WindowCardList } from '#components/WindowCardList.js';
 import { useTabsListeners } from '#hooks/useTabsListeners.js';
 import { useWindowsListeners } from '#hooks/useWindowsListeners.js';
 import { TabTopicAssignments, WindowData } from '#models/index.js';
-import {
-  convertTabToTabData,
-  manageWindow,
-  openSidePanel,
-  sortTabs,
-} from '#utils/management.js';
+import { openSidePanel } from '#utils/management.js';
+import { convertTabToTabData, sortTabs } from '#utils/tabs.js';
 
 function createSearchFilter(searchQuery: string) {
   const lowerQuery = searchQuery.toLowerCase();
@@ -363,14 +359,14 @@ function AppContent({
           .map(convertTabToTabData)}
         currentWindowId={currentWindow.id}
         onManageWindow={async ({ windowId }: { windowId: number }) => {
-          await manageWindow({ windowId });
+          await tabService.manageWindow({ windowId });
 
           // Update local state
           // TODO: use mutation, invalidate queries instead of refetching
           await Promise.all([windowsQuery.refetch(), tabsQuery.refetch()]);
         }}
         onTabClick={({ tabId }: { tabId: number }) => {
-          void tabService.focusTab({ tabId });
+          void tabService.switchTab({ tabId });
         }}
         emptyMessage="No tabs found"
       />
@@ -481,7 +477,7 @@ function AppContent({
               onClick={() => {
                 if (!tab.id || !mainTabGroup?.id || !mainTabGroup.windowId)
                   return;
-                void tabService.focusTab({
+                void tabService.switchTab({
                   mainTabGroupId: mainTabGroup.id,
                   mainWindowId: mainTabGroup.windowId,
                   tabId: tab.id,
