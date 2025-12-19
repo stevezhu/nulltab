@@ -82,7 +82,7 @@ function createTopicFilter({
 
 const tabService = getTabService();
 
-export default function App({ isPopup }: { isPopup?: boolean }) {
+export default function ExtensionPage({ isPopup }: { isPopup?: boolean }) {
   useTabsListeners();
   useWindowsListeners();
 
