@@ -8,35 +8,53 @@ type Tab = Browser.tabs.Tab;
 
 const MAX_RECENT_TABS = 4;
 
-async function openManagedTab({
+/**
+ * Focuses the given tab and groups/ungroups tabs as needed in the main window.
+ * @param options
+ */
+async function focusTab({
+  tabId,
   mainTabGroupId,
   mainWindowId,
-  tabId,
 }: {
-  mainTabGroupId: number;
-  mainWindowId: number;
   tabId: number;
+  mainTabGroupId?: number;
+  mainWindowId?: number;
 }) {
-  // Get all tabs in the window (both grouped and ungrouped) sorted by most recent
-  const allTabs = await browser.tabs.query({ windowId: mainWindowId });
-  const sortedTabs = sortTabs(allTabs);
+  const targetTab = await browser.tabs.get(tabId);
 
-  let targetTab: Tab | undefined = undefined;
+  // we only group and ungroup tabs in the main window that aren't pinned
+  // if it's not in the main window or pinned, just focus the tab
+  const isTargetTabInMainWindow = targetTab.windowId === mainWindowId;
+  if (
+    !mainTabGroupId ||
+    !mainWindowId ||
+    !isTargetTabInMainWindow ||
+    targetTab.pinned
+  ) {
+    await Promise.all([
+      targetTab.discarded && browser.tabs.reload(tabId),
+      browser.tabs.update(tabId, { active: true }),
+      browser.windows.update(targetTab.windowId, { focused: true }),
+    ]);
+    return;
+  }
+
+  // Get all tabs in the window (both grouped and ungrouped) sorted by most recent
+  const sortedTabs = await browser.tabs
+    .query({ windowId: mainWindowId })
+    .then(sortTabs);
+
   const recentTabs: Tab[] = [];
   const tabsToGroup: Tab[] = [];
   for (const tab of sortedTabs) {
-    if (tab.pinned) continue;
-    if (tab.id === tabId) {
-      targetTab = tab;
-    } else if (recentTabs.length < MAX_RECENT_TABS) {
+    if (tab.pinned || tab.id === tabId) continue;
+
+    if (recentTabs.length < MAX_RECENT_TABS) {
       recentTabs.push(tab);
     } else if (tab.groupId !== mainTabGroupId) {
       tabsToGroup.push(tab);
     }
-  }
-
-  if (!targetTab) {
-    throw new Error(`Target tab not found: ${tabId}`);
   }
 
   const tabsToOpen = [targetTab, ...recentTabs].reverse();
@@ -72,7 +90,7 @@ async function openManagedTab({
   ]);
 }
 
-async function discardStaleTabs() {
+async function suspendStaleTabs() {
   const mainTabGroup = await getMainTabGroup();
   if (!mainTabGroup) return;
   const tabs = (await browser.tabs.query({ groupId: mainTabGroup.id })).filter(
@@ -86,7 +104,7 @@ async function discardStaleTabs() {
   }
 }
 
-async function discardAllGroupedTabs() {
+async function suspendGroupedTabs() {
   const mainTabGroup = await getMainTabGroup();
   if (!mainTabGroup) return;
   const tabs = (await browser.tabs.query({ groupId: mainTabGroup.id })).filter(
@@ -99,11 +117,11 @@ async function discardAllGroupedTabs() {
 
 function createTabService() {
   return {
-    openManagedTab,
+    focusTab,
 
     // commands
-    discardStaleTabs,
-    discardAllGroupedTabs,
+    suspendStaleTabs,
+    suspendGroupedTabs,
   };
 }
 

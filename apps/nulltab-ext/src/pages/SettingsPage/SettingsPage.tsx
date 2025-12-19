@@ -83,7 +83,11 @@ export function SettingsPage() {
           </Sidebar>
           <SidebarInset className="overflow-y-auto px-6 py-2">
             <div className="max-w-2xl">
-              {activeSection === 'appearance' && <AppearanceSection />}
+              {activeSection === 'appearance' && (
+                <Suspense fallback={<div>Loading...</div>}>
+                  <AppearanceSection />
+                </Suspense>
+              )}
               {activeSection === 'topics' && (
                 <Suspense fallback={<div>Loading...</div>}>
                   <TopicsSection />

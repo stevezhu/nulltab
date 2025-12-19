@@ -13,12 +13,6 @@ export async function openSidePanel() {
   await browser.sidePanel.open({ windowId: currentWindow.id });
 }
 
-export async function focusTab(tabId: number) {
-  await browser.tabs.update(tabId, { active: true });
-  const tab = await browser.tabs.get(tabId);
-  await browser.windows.update(tab.windowId, { focused: true });
-}
-
 export function convertTabToTabData(tab: Tab): TabData {
   if (tab.id === undefined) throw new Error('Tab ID is required');
   return {
