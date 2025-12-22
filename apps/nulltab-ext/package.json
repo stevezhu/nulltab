@@ -25,18 +25,18 @@
   },
   "dependencies": {
     "@atlaskit/pragmatic-drag-and-drop": "^1.7.7",
-    "@atlaskit/pragmatic-drag-and-drop-flourish": "^2.0.9",
+    "@atlaskit/pragmatic-drag-and-drop-flourish": "^2.0.10",
     "@atlaskit/pragmatic-drag-and-drop-hitbox": "^1.1.0",
     "@sinclair/typebox": "^0.34.41",
     "@tanstack/react-query": "^5.90.12",
     "@webext-core/messaging": "^2.3.0",
-    "@webext-core/proxy-service": "^1.2.1",
-    "lucide-react": "^0.548.0",
+    "@webext-core/proxy-service": "^1.2.2",
+    "lucide-react": "^0.562.0",
     "nanoid": "^5.1.6",
     "react": "catalog:",
     "react-dom": "catalog:",
     "tiny-invariant": "^1.3.3",
-    "typebox": "^1.0.62"
+    "typebox": "^1.0.65"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "catalog:",
@@ -64,6 +64,6 @@
     "typescript": "catalog:",
     "vite": "catalog:",
     "vitest": "catalog:",
-    "wxt": "^0.20.11"
+    "wxt": "^0.20.13"
   }
 }
