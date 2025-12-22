@@ -19,3 +19,10 @@
 export function hasAtLeastOne<T>(array: T[]): array is [T, ...T[]] {
   return array.length > 0;
 }
+
+export function* reverseIterator<T>(array: T[]): IterableIterator<T> {
+  for (let i = array.length - 1; i >= 0; i--) {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    yield array[i]!;
+  }
+}
