@@ -43,13 +43,8 @@ import { WindowCardList } from '#components/WindowCardList.js';
 import { useTabsListeners } from '#hooks/useTabsListeners.js';
 import { useWindowsListeners } from '#hooks/useWindowsListeners.js';
 import { TabTopicAssignments, WindowData } from '#models/index.js';
-import {
-  convertTabToTabData,
-  focusTab,
-  manageWindow,
-  openSidePanel,
-  sortTabs,
-} from '#utils/management.js';
+import { openSidePanel } from '#utils/management.js';
+import { convertTabToTabData, sortTabs } from '#utils/tabs.js';
 
 function createSearchFilter(searchQuery: string) {
   const lowerQuery = searchQuery.toLowerCase();
@@ -91,15 +86,16 @@ export default function ExtensionPage({ isPopup }: { isPopup?: boolean }) {
   const [selectedTopic, setSelectedTopic] = useState<TopicFilterValue>('all');
 
   const queryClient = useQueryClient();
-  const discardStaleTabs = useMutation({
-    mutationFn: () => tabService.discardStaleTabs(),
+
+  const suspendStaleTabs = useMutation({
+    mutationFn: () => tabService.suspendStaleTabs(),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['tabs'] });
     },
   });
 
-  const discardAllGroupedTabs = useMutation({
-    mutationFn: () => tabService.discardAllGroupedTabs(),
+  const suspendGroupedTabs = useMutation({
+    mutationFn: () => tabService.suspendGroupedTabs(),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['tabs'] });
     },
@@ -253,11 +249,11 @@ export default function ExtensionPage({ isPopup }: { isPopup?: boolean }) {
               },
               {
                 label: 'Suspend Stale Tabs',
-                onSelect: discardStaleTabs.mutate,
+                onSelect: suspendStaleTabs.mutate,
               },
               {
                 label: 'Suspend All Grouped Tabs',
-                onSelect: discardAllGroupedTabs.mutate,
+                onSelect: suspendGroupedTabs.mutate,
               },
             ]}
           />
@@ -363,13 +359,15 @@ function AppContent({
           .map(convertTabToTabData)}
         currentWindowId={currentWindow.id}
         onManageWindow={async ({ windowId }: { windowId: number }) => {
-          await manageWindow({ windowId });
+          await tabService.manageWindow({ windowId });
 
           // Update local state
           // TODO: use mutation, invalidate queries instead of refetching
           await Promise.all([windowsQuery.refetch(), tabsQuery.refetch()]);
         }}
-        onTabClick={({ tabId }: { tabId: number }) => focusTab(tabId)}
+        onTabClick={({ tabId }: { tabId: number }) => {
+          void tabService.switchTab({ tabId });
+        }}
         emptyMessage="No tabs found"
       />
     );
@@ -479,7 +477,7 @@ function AppContent({
               onClick={() => {
                 if (!tab.id || !mainTabGroup?.id || !mainTabGroup.windowId)
                   return;
-                void tabService.openManagedTab({
+                void tabService.switchTab({
                   mainTabGroupId: mainTabGroup.id,
                   mainWindowId: mainTabGroup.windowId,
                   tabId: tab.id,

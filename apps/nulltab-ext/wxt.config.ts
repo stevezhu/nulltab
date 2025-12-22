@@ -18,6 +18,13 @@ export default defineConfig({
         },
         description: 'Open NullTab popup',
       },
+      open_dashboard: {
+        suggested_key: {
+          default: 'Alt+T',
+          mac: 'Option+T',
+        },
+        description: 'Open NullTab dashboard',
+      },
     },
   },
   modules: ['@wxt-dev/module-react'],

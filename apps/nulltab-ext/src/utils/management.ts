@@ -1,10 +1,8 @@
 import { type Browser, browser } from 'wxt/browser';
 import { storage } from 'wxt/utils/storage';
 
-import { TabData } from '#models/index.js';
 import { hasAtLeastOne } from '#utils/array.js';
 
-type Tab = Browser.tabs.Tab;
 type TabGroup = Browser.tabGroups.TabGroup;
 
 export async function openSidePanel() {
@@ -13,44 +11,8 @@ export async function openSidePanel() {
   await browser.sidePanel.open({ windowId: currentWindow.id });
 }
 
-export async function focusTab(tabId: number) {
-  await browser.tabs.update(tabId, { active: true });
-  const tab = await browser.tabs.get(tabId);
-  await browser.windows.update(tab.windowId, { focused: true });
-}
-
-export function convertTabToTabData(tab: Tab): TabData {
-  if (tab.id === undefined) throw new Error('Tab ID is required');
-  return {
-    id: tab.id,
-    windowId: tab.windowId,
-    title: tab.title,
-    url: tab.url,
-    favIconUrl: tab.favIconUrl,
-    active: tab.active,
-    lastAccessed: tab.lastAccessed,
-    discarded: tab.discarded,
-  };
-}
-
-export async function manageWindow({ windowId }: { windowId: number }) {
-  const tabs = await browser.tabs.query({ windowId });
-  const tabIds = tabs
-    .map((tab) => tab.id)
-    .filter((id): id is number => Boolean(id));
-  await createMainTabGroup({ tabIds });
-}
-
-export function getTabIds(tabs: Tab[]): number[] {
-  return tabs.map((tab) => tab.id).filter((id): id is number => Boolean(id));
-}
-
-export function sortTabs(tabs: Tab[]): Tab[] {
-  return tabs.sort((a, b) => (b.lastAccessed ?? 0) - (a.lastAccessed ?? 0));
-}
-
 const WATERMARK = '\u200B'; // Zero-width space
-const WATERMARKED_MAIN_TAB_GROUP_TITLE = `Managed${WATERMARK}`;
+const WATERMARKED_MAIN_TAB_GROUP_TITLE = `${WATERMARK}NullTab`;
 
 const mainTabGroupIdStorage = storage.defineItem<number | null>(
   'local:mainTabGroupId',

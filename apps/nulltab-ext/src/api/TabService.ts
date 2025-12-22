@@ -1,78 +1,28 @@
 import { defineProxyService } from '@webext-core/proxy-service';
-import { type Browser, browser } from 'wxt/browser';
+import { browser } from 'wxt/browser';
 
-import { hasAtLeastOne } from '#utils/array.js';
-import { getMainTabGroup, getTabIds, sortTabs } from '#utils/management.js';
+import { createMainTabGroup, getMainTabGroup } from '#utils/management.js';
+import { switchTab as switchTabUtil } from '#utils/tabs.js';
 
-type Tab = Browser.tabs.Tab;
-
-const MAX_RECENT_TABS = 4;
-
-async function openManagedTab({
+async function switchTab({
+  tabId,
   mainTabGroupId,
   mainWindowId,
-  tabId,
 }: {
-  mainTabGroupId: number;
-  mainWindowId: number;
   tabId: number;
+  mainTabGroupId?: number;
+  mainWindowId?: number;
 }) {
-  // Get all tabs in the window (both grouped and ungrouped) sorted by most recent
-  const allTabs = await browser.tabs.query({ windowId: mainWindowId });
-  const sortedTabs = sortTabs(allTabs);
-
-  let targetTab: Tab | undefined = undefined;
-  const recentTabs: Tab[] = [];
-  const tabsToGroup: Tab[] = [];
-  for (const tab of sortedTabs) {
-    if (tab.pinned) continue;
-    if (tab.id === tabId) {
-      targetTab = tab;
-    } else if (recentTabs.length < MAX_RECENT_TABS) {
-      recentTabs.push(tab);
-    } else if (tab.groupId !== mainTabGroupId) {
-      tabsToGroup.push(tab);
-    }
-  }
-
-  if (!targetTab) {
-    throw new Error(`Target tab not found: ${tabId}`);
-  }
-
-  const tabsToOpen = [targetTab, ...recentTabs].reverse();
-  const tabsToOpenIds = getTabIds(tabsToOpen);
-  const tabsToGroupIds = getTabIds(tabsToGroup);
-
-  // 1. Group and ungroup the corresponding tabs
-  await Promise.all([
-    hasAtLeastOne(tabsToOpenIds) && browser.tabs.ungroup(tabsToOpenIds),
-    hasAtLeastOne(tabsToGroupIds) &&
-      browser.tabs.group({
-        groupId: mainTabGroupId,
-        tabIds: tabsToGroupIds,
-      }),
-  ]);
-
-  // 2. Reload discarded tabs
-  for (const tab of tabsToOpen) {
-    if (tab.id && tab.discarded) {
-      await browser.tabs.reload(tab.id);
-    }
-  }
-
-  // 3. Collapse the tab group, move tabs in order, and focus the target tab
-  await Promise.all([
-    browser.tabGroups.update(mainTabGroupId, {
-      collapsed: true,
-    }),
-    // Move all open tabs to end: target tab first, then recent tabs (most to least recent)
-    browser.tabs.move(tabsToOpenIds, { index: -1 }),
-    browser.tabs.update(tabId, { active: true }),
-    browser.windows.update(mainWindowId, { focused: true }),
-  ]);
+  await switchTabUtil({ tabId, mainTabGroupId, mainWindowId });
 }
 
-async function discardStaleTabs() {
+/**
+ * Suspends (discards) tabs in the main tab group that haven't been accessed in 24 hours.
+ *
+ * This helps free up memory by discarding tabs that haven't been used recently.
+ * The tabs remain in the browser but their content is unloaded until they're accessed again.
+ */
+async function suspendStaleTabs() {
   const mainTabGroup = await getMainTabGroup();
   if (!mainTabGroup) return;
   const tabs = (await browser.tabs.query({ groupId: mainTabGroup.id })).filter(
@@ -86,7 +36,14 @@ async function discardStaleTabs() {
   }
 }
 
-async function discardAllGroupedTabs() {
+/**
+ * Suspends (discards) all non-suspended tabs in the main tab group.
+ *
+ * This frees up memory by discarding all tabs in the main group, regardless of
+ * when they were last accessed. The tabs remain in the browser but their content
+ * is unloaded until they're accessed again.
+ */
+async function suspendGroupedTabs() {
   const mainTabGroup = await getMainTabGroup();
   if (!mainTabGroup) return;
   const tabs = (await browser.tabs.query({ groupId: mainTabGroup.id })).filter(
@@ -97,17 +54,29 @@ async function discardAllGroupedTabs() {
   }
 }
 
-function createTabService() {
-  return {
-    openManagedTab,
-
-    // commands
-    discardStaleTabs,
-    discardAllGroupedTabs,
-  };
+/**
+ * Manages all tabs in the specified window by adding them to the main tab group.
+ *
+ * @param options
+ */
+async function manageWindow({ windowId }: { windowId: number }) {
+  const tabs = await browser.tabs.query({ windowId });
+  const tabIds = tabs
+    .map((tab) => tab.id)
+    .filter((id): id is number => Boolean(id));
+  await createMainTabGroup({ tabIds });
 }
 
 export const [registerTabService, getTabService] = defineProxyService(
   'TabService',
-  createTabService,
+  function createTabService() {
+    return {
+      switchTab,
+      manageWindow,
+
+      // commands
+      suspendStaleTabs,
+      suspendGroupedTabs,
+    };
+  },
 );

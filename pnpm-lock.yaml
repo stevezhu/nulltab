@@ -435,6 +435,9 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.90.12
         version: 5.90.12(react@19.2.3)
+      '@webext-core/messaging':
+        specifier: ^2.3.0
+        version: 2.3.0
       '@webext-core/proxy-service':
         specifier: ^1.2.1
         version: 1.2.1(@webext-core/messaging@2.3.0)(webextension-polyfill@0.12.0)
