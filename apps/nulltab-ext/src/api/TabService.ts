@@ -2,6 +2,7 @@ import { defineProxyService } from '@webext-core/proxy-service';
 import { browser } from 'wxt/browser';
 
 import { createMainTabGroup, getMainTabGroup } from '#utils/management.js';
+import { switchTab as switchTabUtil } from '#utils/tabs.js';
 
 async function switchTab({
   tabId,
@@ -12,7 +13,7 @@ async function switchTab({
   mainTabGroupId?: number;
   mainWindowId?: number;
 }) {
-  await switchTab({ tabId, mainTabGroupId, mainWindowId });
+  await switchTabUtil({ tabId, mainTabGroupId, mainWindowId });
 }
 
 /**
