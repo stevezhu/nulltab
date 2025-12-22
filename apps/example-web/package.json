@@ -15,7 +15,7 @@
   "dependencies": {
     "@example/app": "workspace:*",
     "@tanstack/react-query": "^5.90.12",
-    "@tanstack/react-router": "^1.141.2",
+    "@tanstack/react-router": "^1.142.11",
     "@workspace/shadcn": "workspace:*",
     "hono": "catalog:",
     "react": "catalog:",
