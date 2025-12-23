@@ -1,4 +1,5 @@
-import { Slot } from '@radix-ui/react-slot';
+import { mergeProps } from '@base-ui/react/merge-props';
+import { useRender } from '@base-ui/react/use-render';
 import { Separator } from '@workspace/shadcn/components/separator';
 import { cn } from '@workspace/shadcn/lib/utils';
 import { buttonGroupVariants } from '@workspace/shadcn/variants/button-group';
@@ -22,22 +23,25 @@ function ButtonGroup({
 
 function ButtonGroupText({
   className,
-  asChild = false,
+  render,
   ...props
-}: React.ComponentProps<'div'> & {
-  asChild?: boolean;
-}) {
-  const Comp = asChild ? Slot : 'div';
-
-  return (
-    <Comp
-      className={cn(
-        "bg-muted flex items-center gap-2 rounded-md border px-4 text-sm font-medium shadow-xs [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4",
-        className,
-      )}
-      {...props}
-    />
-  );
+}: useRender.ComponentProps<'div'>) {
+  return useRender({
+    defaultTagName: 'div',
+    props: mergeProps<'div'>(
+      {
+        className: cn(
+          "bg-muted gap-2 rounded-md border px-2.5 text-sm font-medium shadow-xs [&_svg:not([class*='size-'])]:size-4 flex items-center [&_svg]:pointer-events-none",
+          className,
+        ),
+      },
+      props,
+    ),
+    render,
+    state: {
+      slot: 'button-group-text',
+    },
+  });
 }
 
 function ButtonGroupSeparator({
@@ -50,7 +54,7 @@ function ButtonGroupSeparator({
       data-slot="button-group-separator"
       orientation={orientation}
       className={cn(
-        'bg-input relative !m-0 self-stretch data-[orientation=vertical]:h-auto',
+        'bg-input relative self-stretch data-[orientation=horizontal]:mx-px data-[orientation=horizontal]:w-auto data-[orientation=vertical]:my-px data-[orientation=vertical]:h-auto',
         className,
       )}
       {...props}
