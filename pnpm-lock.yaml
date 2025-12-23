@@ -30,9 +30,6 @@ catalogs:
     '@stzhu/prettier-plugin-tsconfig':
       specifier: ^0.7.0
       version: 0.7.0
-    '@stzhu/tsconfig':
-      specifier: ^0.1.0
-      version: 0.1.0
     '@types/node':
       specifier: ^25.0.3
       version: 25.0.3
@@ -155,7 +152,7 @@ importers:
         version: 0.9.0(eslint@9.39.2(jiti@2.6.1))(storybook@10.1.10(@testing-library/dom@10.4.1)(prettier@3.7.4)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(tailwindcss@4.1.18)(turbo@2.7.1)(typescript@5.9.3)(vitest@4.0.16(@types/node@25.0.3)(jiti@2.6.1)(lightningcss@1.30.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
       '@stzhu/tsconfig':
         specifier: 'catalog:'
-        version: 0.1.0
+        version: 0.1.1
       '@tailwindcss/vite':
         specifier: ^4.1.18
         version: 4.1.18(vite@7.3.0(@types/node@25.0.3)(jiti@2.6.1)(lightningcss@1.30.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
@@ -300,7 +297,7 @@ importers:
         version: 0.1.0(metro-resolver@0.83.3)(typescript@5.9.3)
       '@stzhu/tsconfig':
         specifier: 'catalog:'
-        version: 0.1.0
+        version: 0.1.1
       '@tailwindcss/postcss':
         specifier: ^4.1.18
         version: 4.1.18
@@ -340,7 +337,7 @@ importers:
         version: 0.9.0(eslint@9.39.2(jiti@2.6.1))(storybook@10.1.10(@testing-library/dom@10.4.1)(prettier@3.7.4)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(tailwindcss@4.1.18)(turbo@2.7.1)(typescript@5.9.3)(vitest@4.0.16(@types/node@25.0.3)(jiti@2.6.1)(lightningcss@1.30.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
       '@stzhu/tsconfig':
         specifier: 'catalog:'
-        version: 0.1.0
+        version: 0.1.1
       '@types/node':
         specifier: 'catalog:'
         version: 25.0.3
@@ -383,7 +380,7 @@ importers:
         version: 0.9.0(eslint@9.39.2(jiti@2.6.1))(storybook@10.1.10(@testing-library/dom@10.4.1)(prettier@3.7.4)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(tailwindcss@4.1.18)(turbo@2.7.1)(typescript@5.9.3)(vitest@4.0.16(@types/node@25.0.3)(jiti@2.6.1)(lightningcss@1.30.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
       '@stzhu/tsconfig':
         specifier: 'catalog:'
-        version: 0.1.0
+        version: 0.1.1
       '@tailwindcss/vite':
         specifier: ^4.1.18
         version: 4.1.18(vite@7.3.0(@types/node@25.0.3)(jiti@2.6.1)(lightningcss@1.30.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
@@ -483,7 +480,7 @@ importers:
         version: 0.9.0(eslint@9.39.2(jiti@2.6.1))(storybook@10.1.10(@testing-library/dom@10.4.1)(prettier@3.7.4)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(tailwindcss@4.1.18)(turbo@2.7.1)(typescript@5.9.3)(vitest@4.0.16(@types/node@25.0.3)(jiti@2.6.1)(lightningcss@1.30.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
       '@stzhu/tsconfig':
         specifier: 'catalog:'
-        version: 0.1.0
+        version: 0.1.1
       '@tailwindcss/vite':
         specifier: ^4.1.18
         version: 4.1.18(vite@7.3.0(@types/node@25.0.3)(jiti@2.6.1)(lightningcss@1.30.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
@@ -543,7 +540,7 @@ importers:
     devDependencies:
       '@stzhu/tsconfig':
         specifier: 'catalog:'
-        version: 0.1.0
+        version: 0.1.1
       '@types/node':
         specifier: 'catalog:'
         version: 25.0.3
@@ -598,7 +595,7 @@ importers:
         version: 0.9.0(eslint@9.39.2(jiti@2.6.1))(storybook@10.1.10(@testing-library/dom@10.4.1)(prettier@3.7.4)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(tailwindcss@4.1.18)(turbo@2.7.1)(typescript@5.9.3)(vitest@4.0.16(@types/node@25.0.3)(jiti@2.6.1)(lightningcss@1.30.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
       '@stzhu/tsconfig':
         specifier: 'catalog:'
-        version: 0.1.0
+        version: 0.1.1
       '@tailwindcss/vite':
         specifier: ^4.1.18
         version: 4.1.18(vite@7.3.0(@types/node@25.0.3)(jiti@2.6.1)(lightningcss@1.30.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
@@ -822,7 +819,7 @@ importers:
         version: 0.9.0(eslint@9.39.2(jiti@2.6.1))(storybook@10.1.10(@testing-library/dom@10.4.1)(prettier@3.7.4)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(tailwindcss@4.1.18)(turbo@2.7.1)(typescript@5.9.3)(vitest@4.0.16(@types/node@25.0.3)(jiti@2.6.1)(lightningcss@1.30.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
       '@stzhu/tsconfig':
         specifier: 'catalog:'
-        version: 0.1.0
+        version: 0.1.1
       '@types/node':
         specifier: 'catalog:'
         version: 25.0.3
@@ -3640,8 +3637,8 @@ packages:
     peerDependencies:
       prettier: ^3.x
 
-  '@stzhu/tsconfig@0.1.0':
-    resolution: {integrity: sha512-tY3uzz/Ah4O+rtO1WCLgR1XXFLo9n/vfZj1U6RIBY5oNXmylEGsGIG3YTpsggUB8L7sjzgKctrgOoH4U3ZoEoQ==}
+  '@stzhu/tsconfig@0.1.1':
+    resolution: {integrity: sha512-RY73UJYtTXYuUAte/ab+1o3Pbawd8SE9V9S7hbSfHplOeqdH7DZNH07PYFxzCk1R6oKcx/D8ziVDrGyN0wXqlw==}
     engines: {node: '>=18'}
 
   '@szmarczak/http-timer@4.0.6':
@@ -13265,7 +13262,7 @@ snapshots:
       '@babel/types': 7.28.5
       prettier: 3.7.4
 
-  '@stzhu/tsconfig@0.1.0': {}
+  '@stzhu/tsconfig@0.1.1': {}
 
   '@szmarczak/http-timer@4.0.6':
     dependencies:
