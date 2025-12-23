@@ -27,9 +27,6 @@ catalogs:
     '@stzhu/eslint-config':
       specifier: ^0.9.0
       version: 0.9.0
-    '@stzhu/prettier-plugin-tsconfig':
-      specifier: ^0.7.0
-      version: 0.7.0
     '@stzhu/tsconfig':
       specifier: ^0.1.0
       version: 0.1.0
@@ -109,7 +106,7 @@ importers:
     devDependencies:
       '@stzhu/prettier-plugin-tsconfig':
         specifier: 'catalog:'
-        version: 0.7.0(prettier@3.7.4)
+        version: 0.7.1(prettier@3.7.4)
       prettier:
         specifier: ^3.7.4
         version: 3.7.4
@@ -3634,8 +3631,8 @@ packages:
       metro-resolver: '>=0.83.0'
       typescript: 5.x
 
-  '@stzhu/prettier-plugin-tsconfig@0.7.0':
-    resolution: {integrity: sha512-s3ttWNsqJZX0HIhiyc2F/0VHHK9ElvmXBa5eVY2VUoXPWPiAMLqJuvYP6Z9dsqPej4gYyaNtdss7Kh2NA2P4gA==}
+  '@stzhu/prettier-plugin-tsconfig@0.7.1':
+    resolution: {integrity: sha512-KWYogMC7SToiV1l+UuQS4m7/DEusTS7LIFKsaEepRIT+c4qtQY6qZmJEfZo7bpLuMRLjDKA/+zJGfDNoWynPhQ==}
     engines: {node: '>=20'}
     peerDependencies:
       prettier: ^3.x
@@ -13260,7 +13257,7 @@ snapshots:
       metro-resolver: 0.83.3
       typescript: 5.9.3
 
-  '@stzhu/prettier-plugin-tsconfig@0.7.0(prettier@3.7.4)':
+  '@stzhu/prettier-plugin-tsconfig@0.7.1(prettier@3.7.4)':
     dependencies:
       '@babel/types': 7.28.5
       prettier: 3.7.4
