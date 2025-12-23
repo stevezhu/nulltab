@@ -1,8 +1,8 @@
-diff --git a/dist/chunks/lib-ClgyQuZx.js b/dist/chunks/lib-ClgyQuZx.js
-index 06042708fbd9671daab7fdb52867a9fba2ababb4..6301821b3c46c93163c44f88eccb450768c5020b 100644
---- a/dist/chunks/lib-ClgyQuZx.js
-+++ b/dist/chunks/lib-ClgyQuZx.js
-@@ -828,7 +828,7 @@ const __filename = import.meta.filename;
+diff --git a/dist/chunks/lib-q6ns0vZr.js b/dist/chunks/lib-q6ns0vZr.js
+index fe0d0c62c9a4159f17437d44e8d128db4bea2ae4..1538c6b7514a515e2ad30ac91596303c45350c3f 100644
+--- a/dist/chunks/lib-q6ns0vZr.js
++++ b/dist/chunks/lib-q6ns0vZr.js
+@@ -800,7 +800,7 @@ const __filename = import.meta.filename;
  const __dirname = import.meta.dirname;
  const require = __cjs_mod__.createRequire(import.meta.url);
  `;

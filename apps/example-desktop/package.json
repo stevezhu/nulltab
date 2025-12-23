@@ -50,7 +50,7 @@
     "electron": "catalog:",
     "electron-builder": "^26.0.12",
     "electron-devtools-installer": "^4.0.0",
-    "electron-vite": "^4.0.1",
+    "electron-vite": "^5.0.0",
     "eslint": "catalog:",
     "example-server": "workspace:*",
     "prettier": "^3.7.4",
