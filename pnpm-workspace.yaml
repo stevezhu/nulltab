@@ -40,6 +40,7 @@ onlyBuiltDependencies:
   - electron
   - electron-winstaller
   - esbuild
+  - msw
   - sharp
   - spawn-sync
   - unrs-resolver
