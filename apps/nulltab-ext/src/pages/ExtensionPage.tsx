@@ -25,8 +25,9 @@ import {
 import { windowsQueryOptions } from '#api/queryOptions/windows.js';
 import { topicStorage } from '#api/storage/topicStorage.js';
 import { getTabService } from '#api/TabService.js';
+import { AppCommandDialog } from '#components/AppCommandDialog.js';
 import TopBar, {
-  TopBarCommand,
+  TopBarAutocomplete,
   type TopBarFilterMode,
 } from '#components/TopBar.js';
 import {
@@ -81,6 +82,7 @@ export default function ExtensionPage({ isPopup }: { isPopup?: boolean }) {
   useTabsListeners();
   useWindowsListeners();
 
+  const [commandDialogOpen, setCommandDialogOpen] = useState(false);
   const [filterMode, setFilterMode] = useState<TopBarFilterMode>('managed');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedTopic, setSelectedTopic] = useState<TopicFilterValue>('all');
@@ -193,73 +195,86 @@ export default function ExtensionPage({ isPopup }: { isPopup?: boolean }) {
   });
 
   return (
-    <div className="flex h-full flex-col">
-      {/* Reverse the markup order and use flex order to overlap correctly.
+    <>
+      <div className="flex h-full flex-col">
+        {/* Reverse the markup order and use flex order to overlap correctly.
       The final element will be on top. */}
 
-      {/* Content Area */}
-      <div className="order-3 flex-1 overflow-y-auto p-4">
-        <AppContent
-          filterMode={filterMode}
-          searchQuery={searchQuery.startsWith('/') ? '' : searchQuery}
-          selectedTopic={selectedTopic}
-          onSelectTopic={setSelectedTopic}
-        />
-      </div>
-
-      {/* Topic Tabs - only show in managed view */}
-      {filterMode === 'managed' && (
-        <div className="order-2">
-          <TopicsBar
-            topics={topics}
-            counts={topicCounts}
+        {/* Content Area */}
+        <div className="order-3 flex-1 overflow-y-auto p-4">
+          <AppContent
+            filterMode={filterMode}
+            searchQuery={searchQuery.startsWith('/') ? '' : searchQuery}
             selectedTopic={selectedTopic}
             onSelectTopic={setSelectedTopic}
-            onCreateTopic={(name, color) => {
-              createTopic.mutate({ name, color });
-            }}
-            onDeleteTopic={(id) => {
-              deleteTopic.mutate(id);
-            }}
-            onUpdateTopic={(topic) => {
-              updateTopic.mutate(topic);
-            }}
-            onReorderTopics={(topicIds) => {
-              reorderTopics.mutate(topicIds);
-            }}
           />
         </div>
-      )}
 
-      {/* Top Bar */}
-      <div className="order-1">
-        <TopBar
-          filterMode={filterMode}
-          onFilterChange={setFilterMode}
-          showSidePanelButton={isPopup}
-          onOpenSidePanel={openSidePanel}
-        >
-          <TopBarCommand
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            commands={[
-              {
-                label: 'Undo Close Tab',
-                onSelect: undoCloseTab.mutate,
-              },
-              {
-                label: 'Suspend Stale Tabs',
-                onSelect: suspendStaleTabs.mutate,
-              },
-              {
-                label: 'Suspend All Grouped Tabs',
-                onSelect: suspendGroupedTabs.mutate,
-              },
-            ]}
-          />
-        </TopBar>
+        {/* Topic Tabs - only show in managed view */}
+        {filterMode === 'managed' && (
+          <div className="order-2">
+            <TopicsBar
+              topics={topics}
+              counts={topicCounts}
+              selectedTopic={selectedTopic}
+              onSelectTopic={setSelectedTopic}
+              onCreateTopic={(name, color) => {
+                createTopic.mutate({ name, color });
+              }}
+              onDeleteTopic={(id) => {
+                deleteTopic.mutate(id);
+              }}
+              onUpdateTopic={(topic) => {
+                updateTopic.mutate(topic);
+              }}
+              onReorderTopics={(topicIds) => {
+                reorderTopics.mutate(topicIds);
+              }}
+            />
+          </div>
+        )}
+
+        {/* Top Bar */}
+        <div className="order-1">
+          <TopBar
+            filterMode={filterMode}
+            onFilterChange={setFilterMode}
+            showSidePanelButton={isPopup}
+            onOpenSidePanel={openSidePanel}
+          >
+            <TopBarAutocomplete
+              value={searchQuery}
+              onValueChange={(value) => {
+                setSearchQuery(value);
+              }}
+              onOpenCommandDialog={() => {
+                setCommandDialogOpen(true);
+                setSearchQuery('');
+              }}
+            />
+          </TopBar>
+        </div>
       </div>
-    </div>
+
+      <AppCommandDialog
+        open={commandDialogOpen}
+        onOpenChange={setCommandDialogOpen}
+        commands={[
+          {
+            label: 'Undo Close Tab',
+            onSelect: undoCloseTab.mutate,
+          },
+          {
+            label: 'Suspend Stale Tabs',
+            onSelect: suspendStaleTabs.mutate,
+          },
+          {
+            label: 'Suspend All Grouped Tabs',
+            onSelect: suspendGroupedTabs.mutate,
+          },
+        ]}
+      />
+    </>
   );
 }
 

@@ -6,7 +6,7 @@
     "#*": "./src/*"
   },
   "exports": {
-    "./styles/*": "./src/styles/*",
+    "./main.css": "./src/main.css",
     "./components/*": "./src/components/*.tsx",
     "./hooks/*": "./src/hooks/*.ts",
     "./lib/*": "./src/lib/*.ts",
