@@ -11,14 +11,13 @@
   "scripts": {
     "build": "wxt build",
     "build:firefox": "wxt build -b firefox",
-    "compile": "tsc --noEmit",
     "dev": "wxt",
     "dev:firefox": "wxt -b firefox",
     "postinstall": "wxt prepare",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "storybook": "storybook dev",
-    "test": "vitest run",
+    "test": "tsc --noEmit && vitest run",
     "watch": "vitest",
     "zip": "wxt zip",
     "zip:firefox": "wxt zip -b firefox"

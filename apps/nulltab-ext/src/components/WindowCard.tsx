@@ -182,7 +182,7 @@ export function WindowCardTab({
       </div>
       {discarded && (
         <Tooltip>
-          <TooltipTrigger asChild>
+          <TooltipTrigger>
             <CirclePause className="h-3.5 w-3.5 text-muted-foreground" />
           </TooltipTrigger>
           <TooltipContent>Suspended</TooltipContent>
@@ -192,22 +192,24 @@ export function WindowCardTab({
       {/* Actions menu */}
       {(onClose || (topics && onTopicChange)) && (
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              className={cn(
-                `
-                  flex shrink-0 items-center rounded-md p-1
-                  text-muted-foreground transition-colors
-                `,
-                'hover:bg-accent hover:text-foreground',
-              )}
-              onClick={(e) => {
-                e.stopPropagation();
-              }}
-            >
-              <MoreHorizontal className="h-4 w-4" />
-            </button>
+          <DropdownMenuTrigger
+            render={
+              <button
+                type="button"
+                className={cn(
+                  `
+                    flex shrink-0 items-center rounded-md p-1
+                    text-muted-foreground transition-colors
+                  `,
+                  'hover:bg-accent hover:text-foreground',
+                )}
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}
+              />
+            }
+          >
+            <MoreHorizontal className="h-4 w-4" />
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
@@ -312,8 +314,8 @@ function LastAccessedDisplay({ timestamp }: { timestamp: number }) {
           : 'text-red-400/80';
 
   return (
-    <Tooltip delayDuration={500}>
-      <TooltipTrigger asChild>
+    <Tooltip>
+      <TooltipTrigger>
         <div className="flex shrink-0 items-center gap-1">
           <Clock className={cn('h-3.5 w-3.5', clockColor)} />
           <span className="text-xs text-muted-foreground">

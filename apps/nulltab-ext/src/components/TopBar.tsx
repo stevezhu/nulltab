@@ -34,6 +34,21 @@ export default function TopBar({
   onOpenSidePanel,
   children,
 }: TopBarProps) {
+  const selectItems = [
+    {
+      label: (
+        <>
+          {' '}
+          <Sparkles className="text-yellow-500" /> All
+        </>
+      ),
+      value: 'managed',
+    },
+    {
+      label: <>Ungrouped</>,
+      value: 'unmanaged',
+    },
+  ];
   return (
     <div
       className={`
@@ -42,16 +57,24 @@ export default function TopBar({
     >
       {/* Left Section - Filter Dropdown */}
       <div>
-        <Select value={filterMode} onValueChange={onFilterChange}>
+        <Select
+          items={selectItems}
+          value={filterMode}
+          onValueChange={(value) => {
+            if (value != null) {
+              onFilterChange(value);
+            }
+          }}
+        >
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="managed">
-              <Sparkles className="text-yellow-500" />
-              All
-            </SelectItem>
-            <SelectItem value="unmanaged">Ungrouped</SelectItem>
+          <SelectContent align="start">
+            {selectItems.map((item) => (
+              <SelectItem key={item.value} value={item.value}>
+                {item.label}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>

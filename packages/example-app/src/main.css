@@ -1,4 +1,3 @@
-@import '@workspace/shadcn/styles/tailwind.css';
-@import '@workspace/shadcn/styles/globals.css';
+@import '@workspace/shadcn/main.css';
 
 @source './**/*.{ts,tsx}';

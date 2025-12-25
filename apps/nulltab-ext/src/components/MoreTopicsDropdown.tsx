@@ -6,7 +6,7 @@ import {
   DropdownMenuTrigger,
 } from '@workspace/shadcn/components/dropdown-menu';
 import { Check, X } from 'lucide-react';
-import { ReactNode } from 'react';
+import { type ReactElement } from 'react';
 
 import { type Topic } from '#models/index.js';
 
@@ -18,7 +18,7 @@ export type MoreTopicsDropdownProps = {
   selectedTopic: TopicFilterValue;
   onSelectTopic: (topic: TopicFilterValue) => void;
   onDeleteTopic: (id: string) => void;
-  children: ReactNode;
+  children?: ReactElement;
 };
 
 export function MoreTopicsDropdown({
@@ -31,7 +31,7 @@ export function MoreTopicsDropdown({
 }: MoreTopicsDropdownProps) {
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
+      <DropdownMenuTrigger render={children} />
       <DropdownMenuContent align="start" className="w-56">
         <DropdownMenuGroup>
           {topics.map((topic) => (

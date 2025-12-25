@@ -1,5 +1,5 @@
 import { nanoid } from 'nanoid';
-import { type Static, StaticEncode, StaticParse, Type } from 'typebox';
+import { type Static, StaticDecode, StaticEncode, Type } from 'typebox';
 import { Value } from 'typebox/value';
 import { storage } from 'wxt/utils/storage';
 
@@ -22,7 +22,7 @@ export const ClosedWindowSchema = Type.Object({
   closedAt: Timestamp,
 });
 
-export type ClosedWindow = StaticParse<typeof ClosedWindowSchema>;
+export type ClosedWindow = StaticDecode<typeof ClosedWindowSchema>;
 
 // Encoded type for storage (closedAt as number instead of Date)
 type EncodedClosedWindow = StaticEncode<typeof ClosedWindowSchema>;

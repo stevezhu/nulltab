@@ -10,7 +10,7 @@ import {
 import { Input } from '@workspace/shadcn/components/input';
 import { cn } from '@workspace/shadcn/lib/utils';
 import { Plus } from 'lucide-react';
-import { ComponentProps, type ReactNode, useState } from 'react';
+import { ComponentProps, ReactElement, useState } from 'react';
 
 const TOPIC_COLORS: [string, ...string[]] = [
   '#ef4444', // red
@@ -25,7 +25,7 @@ const TOPIC_COLORS: [string, ...string[]] = [
 
 export type CreateTopicDialogProps = {
   onCreateTopic: (name: string, color?: string) => void;
-  children?: ReactNode;
+  children?: ReactElement;
 };
 
 export function CreateTopicDialog({
@@ -47,7 +47,7 @@ export function CreateTopicDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogTrigger render={children} />
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Create Topic</DialogTitle>

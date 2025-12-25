@@ -56,7 +56,7 @@ After you paste the snippet, double-check the `entryPoint` value:
 
 - Use the path to the primary Tailwind CSS (or global styles) file that the package actually builds. For Vite/React packages this is usually `src/main.css`.
 - For Electron apps, point to the renderer entry (e.g. `src/renderer/src/assets/main.css`).
-- If the package keeps styles elsewhere (such as `src/styles/tailwind.css`), update the path accordingly so the `better-tailwindcss` plugin resolves utilities correctly.
+- If the package keeps styles elsewhere (such as `src/main.css`), update the path accordingly so the `better-tailwindcss` plugin resolves utilities correctly.
 
 **Electron / desktop apps**: add `globalIgnores` for build artefacts like `out/` or `.vite/` directories.
 
