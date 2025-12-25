@@ -134,7 +134,7 @@ export function TopBarAutocomplete({
           placeholder="Type a command using / or search..."
           autoFocus
           onKeyDown={(e) => {
-            if (e.key === '/') {
+            if (value === '' && e.key === '/') {
               e.preventDefault();
               onOpenCommandDialog();
             }

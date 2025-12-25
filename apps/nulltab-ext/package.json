@@ -26,6 +26,7 @@
     "@atlaskit/pragmatic-drag-and-drop": "^1.7.7",
     "@atlaskit/pragmatic-drag-and-drop-flourish": "^2.0.10",
     "@atlaskit/pragmatic-drag-and-drop-hitbox": "^1.1.0",
+    "@mantine/hooks": "^8.3.10",
     "@sinclair/typebox": "^0.34.41",
     "@tanstack/react-query": "^5.90.12",
     "@webext-core/messaging": "^2.3.0",

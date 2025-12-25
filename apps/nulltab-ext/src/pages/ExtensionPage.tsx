@@ -1,3 +1,4 @@
+import { useDebouncedValue } from '@mantine/hooks';
 import {
   useMutation,
   useQueryClient,
@@ -85,6 +86,7 @@ export default function ExtensionPage({ isPopup }: { isPopup?: boolean }) {
   const [commandDialogOpen, setCommandDialogOpen] = useState(false);
   const [filterMode, setFilterMode] = useState<TopBarFilterMode>('managed');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [debouncedSearchQuery] = useDebouncedValue(searchQuery, 500);
   const [selectedTopic, setSelectedTopic] = useState<TopicFilterValue>('all');
 
   const queryClient = useQueryClient();
@@ -204,7 +206,7 @@ export default function ExtensionPage({ isPopup }: { isPopup?: boolean }) {
         <div className="order-3 flex-1 overflow-y-auto p-4">
           <AppContent
             filterMode={filterMode}
-            searchQuery={searchQuery.startsWith('/') ? '' : searchQuery}
+            searchQuery={debouncedSearchQuery}
             selectedTopic={selectedTopic}
             onSelectTopic={setSelectedTopic}
           />
@@ -249,7 +251,6 @@ export default function ExtensionPage({ isPopup }: { isPopup?: boolean }) {
               }}
               onOpenCommandDialog={() => {
                 setCommandDialogOpen(true);
-                setSearchQuery('');
               }}
             />
           </TopBar>
