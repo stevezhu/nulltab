@@ -85,8 +85,8 @@ export default function ExtensionPage({ isPopup }: { isPopup?: boolean }) {
 
   const [commandDialogOpen, setCommandDialogOpen] = useState(false);
   const [filterMode, setFilterMode] = useState<TopBarFilterMode>('managed');
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [debouncedSearchQuery] = useDebouncedValue(searchQuery, 500);
+  const [searchValue, setSearchValue] = useState<string>('');
+  const [debouncedSearchValue] = useDebouncedValue(searchValue, 500);
   const [selectedTopic, setSelectedTopic] = useState<TopicFilterValue>('all');
 
   const queryClient = useQueryClient();
@@ -206,7 +206,7 @@ export default function ExtensionPage({ isPopup }: { isPopup?: boolean }) {
         <div className="order-3 flex-1 overflow-y-auto p-4">
           <AppContent
             filterMode={filterMode}
-            searchQuery={debouncedSearchQuery}
+            searchValue={debouncedSearchValue}
             selectedTopic={selectedTopic}
             onSelectTopic={setSelectedTopic}
           />
@@ -245,9 +245,9 @@ export default function ExtensionPage({ isPopup }: { isPopup?: boolean }) {
             onOpenSidePanel={openSidePanel}
           >
             <TopBarAutocomplete
-              value={searchQuery}
+              value={searchValue}
               onValueChange={(value) => {
-                setSearchQuery(value);
+                setSearchValue(value);
               }}
               onOpenCommandDialog={() => {
                 setCommandDialogOpen(true);
@@ -281,12 +281,12 @@ export default function ExtensionPage({ isPopup }: { isPopup?: boolean }) {
 
 function AppContent({
   filterMode,
-  searchQuery,
+  searchValue,
   selectedTopic,
   onSelectTopic,
 }: {
   filterMode: TopBarFilterMode;
-  searchQuery: string;
+  searchValue: string;
   selectedTopic: TopicFilterValue;
   onSelectTopic: (topic: TopicFilterValue) => void;
 }) {
@@ -320,12 +320,12 @@ function AppContent({
   });
 
   const filteredTabs = useMemo(() => {
-    const searchFilter = createSearchFilter(searchQuery);
+    const searchFilter = createSearchFilter(searchValue);
     const topicFilter = createTopicFilter({ selectedTopic, tabAssignments });
     return tabsQuery.data.filter((tab) =>
       [searchFilter, topicFilter].every((filter) => filter(tab)),
     );
-  }, [tabsQuery.data, searchQuery, selectedTopic, tabAssignments]);
+  }, [tabsQuery.data, searchValue, selectedTopic, tabAssignments]);
 
   const currentWindowQuery = useSuspenseQuery({
     queryKey: ['currentWindow'],
@@ -390,7 +390,7 @@ function AppContent({
   }
   if (managedTabs.length === 0) {
     // Determine the empty state context
-    const isSearching = searchQuery.length > 0;
+    const isSearching = searchValue.length > 0;
     const isFilteringByTopic =
       selectedTopic !== 'all' && selectedTopic !== 'uncategorized';
     const isFilteringUncategorized = selectedTopic === 'uncategorized';
@@ -407,7 +407,7 @@ function AppContent({
             </EmptyMedia>
             <EmptyTitle>No matching tabs</EmptyTitle>
             <EmptyDescription>
-              No tabs match &quot;{searchQuery}&quot;. Try a different search
+              No tabs match &quot;{searchValue}&quot;. Try a different search
               term.
             </EmptyDescription>
           </EmptyHeader>
