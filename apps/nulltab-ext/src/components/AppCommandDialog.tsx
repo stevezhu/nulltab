@@ -40,6 +40,11 @@ export function AppCommandDialog({
       >
         <CommandInput
           placeholder="Search for a command to run..."
+          activePlaceholder={
+            commandInputValue === '/'
+              ? 'Search or backspace to close...'
+              : undefined
+          }
           value={commandInputValue}
           onValueChange={(value) => {
             if (value === '') {

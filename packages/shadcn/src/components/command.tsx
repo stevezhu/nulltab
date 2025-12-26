@@ -67,8 +67,14 @@ function CommandDialog({
 
 function CommandInput({
   className,
+  activePlaceholder,
   ...props
-}: React.ComponentProps<typeof CommandPrimitive.Input>) {
+}: React.ComponentProps<typeof CommandPrimitive.Input> & {
+  /**
+   * Placeholder to show after text even when input isn't empty.
+   */
+  activePlaceholder?: string;
+}) {
   return (
     <div data-slot="command-input-wrapper" className="p-1 pb-0">
       <InputGroup
@@ -91,6 +97,19 @@ function CommandInput({
         <InputGroupAddon>
           <SearchIcon className="size-4 shrink-0 opacity-50" />
         </InputGroupAddon>
+        {activePlaceholder && (
+          <div
+            className={`
+              absolute top-0 left-6 flex h-full w-[calc(100%-24px)] items-center
+              overflow-hidden rounded-lg pl-1.5 text-sm whitespace-nowrap
+              text-muted-foreground
+            `}
+          >
+            <span className="invisible">{props.value}</span>
+            &nbsp;
+            {activePlaceholder}
+          </div>
+        )}
       </InputGroup>
     </div>
   );
