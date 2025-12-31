@@ -23,7 +23,7 @@
     "expo-router": "~6.0.21",
     "expo-symbols": "~1.0.8",
     "expo-web-browser": "~15.0.10",
-    "react-native-reanimated": "~4.1.6"
+    "react-native-reanimated": "~4.2.0"
   },
   "devDependencies": {
     "@stzhu/eslint-config": "catalog:",
