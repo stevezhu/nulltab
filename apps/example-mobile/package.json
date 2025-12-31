@@ -43,7 +43,7 @@
     "react-native-worklets": "0.5.1"
   },
   "devDependencies": {
-    "@react-native/metro-config": "^0.82.1",
+    "@react-native/metro-config": "^0.83.0",
     "@rnx-kit/metro-config": "^2.2.1",
     "@stzhu/eslint-config": "catalog:",
     "@stzhu/metro-ts-resolver": "^0.1.0",
