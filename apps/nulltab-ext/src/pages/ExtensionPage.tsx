@@ -262,17 +262,26 @@ export default function ExtensionPage({ isPopup }: { isPopup?: boolean }) {
         onOpenChange={setCommandDialogOpen}
         commands={[
           {
+            key: 'undo-close-tab',
             label: 'Undo Close Tab',
             onSelect: undoCloseTab.mutate,
           },
           {
+            key: 'suspend-stale-tabs',
             label: 'Suspend Stale Tabs',
             onSelect: suspendStaleTabs.mutate,
           },
           {
+            key: 'suspend-all-grouped-tabs',
             label: 'Suspend All Grouped Tabs',
             onSelect: suspendGroupedTabs.mutate,
           },
+          {
+            key: 'open-side-panel',
+            label: 'Open Side Panel',
+            onSelect: () => void openSidePanel(),
+          },
+          // TODO: add more commands here
         ]}
       />
     </>

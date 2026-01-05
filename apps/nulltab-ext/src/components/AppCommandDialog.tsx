@@ -17,6 +17,7 @@ export function AppCommandDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   commands: {
+    key: string;
     label: string;
     onSelect: () => void;
   }[];
@@ -24,6 +25,7 @@ export function AppCommandDialog({
   const [commandInputValue, setCommandInputValue] = useState('/');
   return (
     <CommandDialog
+      className="max-h-full"
       open={open}
       onOpenChange={onOpenChange}
       onOpenChangeComplete={(open) => {
@@ -57,10 +59,10 @@ export function AppCommandDialog({
         <CommandList>
           <CommandEmpty>No results found.</CommandEmpty>
           <CommandGroup heading="Commands">
-            {commands.map(({ label, onSelect }) => {
+            {commands.map(({ key, label, onSelect }) => {
               return (
                 <CommandItem
-                  key={label}
+                  key={key}
                   onSelect={() => {
                     onOpenChange(false);
                     onSelect();

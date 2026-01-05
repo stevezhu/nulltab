@@ -47,7 +47,7 @@ export function EditTopicDropdown({
       >
         <MoreHorizontal />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" className="w-fit text-sm">
         <DropdownMenuGroup>
           <DropdownMenuLabel className="flex items-center gap-2">
             <Palette />

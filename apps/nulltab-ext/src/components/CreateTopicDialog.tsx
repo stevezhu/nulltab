@@ -104,7 +104,7 @@ export function CreateTopicDialog({
 
 export function CreateTopicButton(props: ComponentProps<typeof Button>) {
   return (
-    <Button variant="ghost" size="sm" {...props}>
+    <Button variant="ghost" {...props}>
       <Plus />
       <span>Add</span>
     </Button>

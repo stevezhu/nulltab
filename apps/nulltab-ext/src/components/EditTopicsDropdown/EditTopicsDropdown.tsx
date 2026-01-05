@@ -49,11 +49,11 @@ export function EditTopicsDropdown({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger render={children} />
-      <DropdownMenuContent align="end" className="w-56">
+      <DropdownMenuContent align="end" className="w-56 text-sm">
         <DropdownMenuGroup>
-          <DropdownMenuLabel className="flex items-center gap-2">
-            Edit Topics
-            <span className="text-xs font-normal text-muted-foreground">
+          <DropdownMenuLabel>
+            Edit Topics{' '}
+            <span className="font-normal text-muted-foreground">
               (drag to reorder)
             </span>
           </DropdownMenuLabel>
