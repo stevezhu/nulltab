@@ -18,20 +18,14 @@ export function TopicPill({
   return (
     <Badge
       variant={selected ? 'default' : 'outline'}
-      className={cn(
-        `
-          flex cursor-pointer items-center gap-1.5 px-3 py-1 text-xs
-          transition-colors select-none
-        `,
-        selected && 'bg-primary text-primary-foreground',
-        !selected && 'hover:bg-accent',
-      )}
+      className={cn(`select-none`, !selected && 'hover:bg-accent')}
+      // TODO: text color might need to be adjusted depending on the color
       style={
-        color && selected
-          ? { backgroundColor: color, borderColor: color }
-          : color && !selected
-            ? { borderColor: color, color: color }
-            : undefined
+        color
+          ? selected
+            ? { backgroundColor: color, borderColor: color }
+            : { borderColor: color, color: color }
+          : undefined
       }
       {...props}
     >

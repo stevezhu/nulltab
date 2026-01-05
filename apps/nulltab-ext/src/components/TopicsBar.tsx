@@ -146,9 +146,16 @@ export function TopicsBar({
             </TopicPill>
           </MoreTopicsDropdown>
         )}
+
+        {/* Spacer to keep the spacing consistent so that the ui doesn't shift because all and
+          uncategorized don't have a delete button. */}
+        {(selectedTopic === 'all' || selectedTopic === 'uncategorized') && (
+          <div className="w-5.5" />
+        )}
+
         <div className="ml-auto flex items-center gap-2">
           <CreateTopicDialog onCreateTopic={onCreateTopic}>
-            <CreateTopicButton />
+            <CreateTopicButton size="xs" />
           </CreateTopicDialog>
           {topics.length > 0 && (
             <EditTopicsDropdown
@@ -157,7 +164,7 @@ export function TopicsBar({
               onDeleteTopic={onDeleteTopic}
               onReorderTopics={onReorderTopics}
             >
-              <EditTopicsButton />
+              <EditTopicsButton size="xs" />
             </EditTopicsDropdown>
           )}
         </div>

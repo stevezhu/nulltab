@@ -1,9 +1,11 @@
+import { useDebouncedValue } from '@mantine/hooks';
 import {
   useMutation,
   useQueryClient,
   useSuspenseQuery,
 } from '@tanstack/react-query';
 import { Button } from '@workspace/shadcn/components/button';
+import { CommandShortcut } from '@workspace/shadcn/components/command';
 import {
   Empty,
   EmptyDescription,
@@ -25,8 +27,9 @@ import {
 import { windowsQueryOptions } from '#api/queryOptions/windows.js';
 import { topicStorage } from '#api/storage/topicStorage.js';
 import { getTabService } from '#api/TabService.js';
+import { AppCommandDialog } from '#components/AppCommandDialog.js';
 import TopBar, {
-  TopBarCommand,
+  TopBarAutocomplete,
   type TopBarFilterMode,
 } from '#components/TopBar.js';
 import {
@@ -43,7 +46,7 @@ import { WindowCardList } from '#components/WindowCardList.js';
 import { useTabsListeners } from '#hooks/useTabsListeners.js';
 import { useWindowsListeners } from '#hooks/useWindowsListeners.js';
 import { TabTopicAssignments, WindowData } from '#models/index.js';
-import { openSidePanel } from '#utils/management.js';
+import { openDashboard, openSidePanel } from '#utils/management.js';
 import { convertTabToTabData, sortTabs } from '#utils/tabs.js';
 
 function createSearchFilter(searchQuery: string) {
@@ -81,8 +84,10 @@ export default function ExtensionPage({ isPopup }: { isPopup?: boolean }) {
   useTabsListeners();
   useWindowsListeners();
 
+  const [commandDialogOpen, setCommandDialogOpen] = useState(false);
   const [filterMode, setFilterMode] = useState<TopBarFilterMode>('managed');
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [searchValue, setSearchValue] = useState<string>('');
+  const [debouncedSearchValue] = useDebouncedValue(searchValue, 500);
   const [selectedTopic, setSelectedTopic] = useState<TopicFilterValue>('all');
 
   const queryClient = useQueryClient();
@@ -193,84 +198,122 @@ export default function ExtensionPage({ isPopup }: { isPopup?: boolean }) {
   });
 
   return (
-    <div className="flex h-full flex-col">
-      {/* Reverse the markup order and use flex order to overlap correctly.
+    <>
+      <div className="flex h-full flex-col">
+        {/* Reverse the markup order and use flex order to overlap correctly.
       The final element will be on top. */}
 
-      {/* Content Area */}
-      <div className="order-3 flex-1 overflow-y-auto p-4">
-        <AppContent
-          filterMode={filterMode}
-          searchQuery={searchQuery.startsWith('/') ? '' : searchQuery}
-          selectedTopic={selectedTopic}
-          onSelectTopic={setSelectedTopic}
-        />
-      </div>
-
-      {/* Topic Tabs - only show in managed view */}
-      {filterMode === 'managed' && (
-        <div className="order-2">
-          <TopicsBar
-            topics={topics}
-            counts={topicCounts}
+        {/* Content Area */}
+        <div className="order-3 flex-1 overflow-y-auto p-4">
+          <AppContent
+            filterMode={filterMode}
+            searchValue={debouncedSearchValue}
             selectedTopic={selectedTopic}
             onSelectTopic={setSelectedTopic}
-            onCreateTopic={(name, color) => {
-              createTopic.mutate({ name, color });
-            }}
-            onDeleteTopic={(id) => {
-              deleteTopic.mutate(id);
-            }}
-            onUpdateTopic={(topic) => {
-              updateTopic.mutate(topic);
-            }}
-            onReorderTopics={(topicIds) => {
-              reorderTopics.mutate(topicIds);
-            }}
           />
         </div>
-      )}
 
-      {/* Top Bar */}
-      <div className="order-1">
-        <TopBar
-          filterMode={filterMode}
-          onFilterChange={setFilterMode}
-          showSidePanelButton={isPopup}
-          onOpenSidePanel={openSidePanel}
-        >
-          <TopBarCommand
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            commands={[
-              {
-                label: 'Undo Close Tab',
-                onSelect: undoCloseTab.mutate,
-              },
-              {
-                label: 'Suspend Stale Tabs',
-                onSelect: suspendStaleTabs.mutate,
-              },
-              {
-                label: 'Suspend All Grouped Tabs',
-                onSelect: suspendGroupedTabs.mutate,
-              },
-            ]}
-          />
-        </TopBar>
+        {/* Topic Tabs - only show in managed view */}
+        {filterMode === 'managed' && (
+          <div className="order-2">
+            <TopicsBar
+              topics={topics}
+              counts={topicCounts}
+              selectedTopic={selectedTopic}
+              onSelectTopic={setSelectedTopic}
+              onCreateTopic={(name, color) => {
+                createTopic.mutate({ name, color });
+              }}
+              onDeleteTopic={(id) => {
+                deleteTopic.mutate(id);
+              }}
+              onUpdateTopic={(topic) => {
+                updateTopic.mutate(topic);
+              }}
+              onReorderTopics={(topicIds) => {
+                reorderTopics.mutate(topicIds);
+              }}
+            />
+          </div>
+        )}
+
+        {/* Top Bar */}
+        <div className="order-1">
+          <TopBar
+            filterMode={filterMode}
+            onFilterChange={setFilterMode}
+            showSidePanelButton={isPopup}
+            onOpenSidePanel={openSidePanel}
+          >
+            <TopBarAutocomplete
+              value={searchValue}
+              onValueChange={(value) => {
+                setSearchValue(value);
+              }}
+              onOpenCommandDialog={() => {
+                setCommandDialogOpen(true);
+              }}
+            />
+          </TopBar>
+        </div>
       </div>
-    </div>
+
+      <AppCommandDialog
+        open={commandDialogOpen}
+        onOpenChange={setCommandDialogOpen}
+        commands={[
+          {
+            key: 'undo-close-tab',
+            label: (
+              <>
+                <span>Undo Close Tab</span>
+                {/* TODO: make sure this is the right shortcut */}
+                <CommandShortcut>⌘+⇧+T</CommandShortcut>
+              </>
+            ),
+            onSelect: undoCloseTab.mutate,
+          },
+          {
+            key: 'suspend-stale-tabs',
+            label: 'Suspend Stale Tabs',
+            onSelect: suspendStaleTabs.mutate,
+          },
+          {
+            key: 'suspend-all-grouped-tabs',
+            label: 'Suspend All Grouped Tabs',
+            onSelect: suspendGroupedTabs.mutate,
+          },
+          {
+            key: 'open-side-panel',
+            label: 'Open Side Panel',
+            onSelect: () => void openSidePanel(),
+          },
+          {
+            key: 'open-dashboard',
+            label: (
+              <>
+                <span>Open Dashboard</span>
+                {/* TODO: replace with shortcut from browser.commands.getAll() */}
+                <CommandShortcut>⌥+T</CommandShortcut>
+              </>
+            ),
+            onSelect: () => void openDashboard(),
+          },
+          // TODO: add more commands here
+        ]}
+      />
+    </>
   );
 }
 
 function AppContent({
   filterMode,
-  searchQuery,
+  searchValue,
   selectedTopic,
   onSelectTopic,
 }: {
   filterMode: TopBarFilterMode;
-  searchQuery: string;
+  searchValue: string;
   selectedTopic: TopicFilterValue;
   onSelectTopic: (topic: TopicFilterValue) => void;
 }) {
@@ -304,12 +347,12 @@ function AppContent({
   });
 
   const filteredTabs = useMemo(() => {
-    const searchFilter = createSearchFilter(searchQuery);
+    const searchFilter = createSearchFilter(searchValue);
     const topicFilter = createTopicFilter({ selectedTopic, tabAssignments });
     return tabsQuery.data.filter((tab) =>
       [searchFilter, topicFilter].every((filter) => filter(tab)),
     );
-  }, [tabsQuery.data, searchQuery, selectedTopic, tabAssignments]);
+  }, [tabsQuery.data, searchValue, selectedTopic, tabAssignments]);
 
   const currentWindowQuery = useSuspenseQuery({
     queryKey: ['currentWindow'],
@@ -374,7 +417,7 @@ function AppContent({
   }
   if (managedTabs.length === 0) {
     // Determine the empty state context
-    const isSearching = searchQuery.length > 0;
+    const isSearching = searchValue.length > 0;
     const isFilteringByTopic =
       selectedTopic !== 'all' && selectedTopic !== 'uncategorized';
     const isFilteringUncategorized = selectedTopic === 'uncategorized';
@@ -391,7 +434,7 @@ function AppContent({
             </EmptyMedia>
             <EmptyTitle>No matching tabs</EmptyTitle>
             <EmptyDescription>
-              No tabs match &quot;{searchQuery}&quot;. Try a different search
+              No tabs match &quot;{searchValue}&quot;. Try a different search
               term.
             </EmptyDescription>
           </EmptyHeader>

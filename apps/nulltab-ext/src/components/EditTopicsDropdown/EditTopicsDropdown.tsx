@@ -2,12 +2,12 @@ import { Button } from '@workspace/shadcn/components/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@workspace/shadcn/components/dropdown-menu';
 import { Palette } from 'lucide-react';
-import { ComponentProps, ReactNode } from 'react';
+import { ComponentProps, ReactElement } from 'react';
 
 import { useSortable } from '#hooks/useSortable.js';
 import { type Topic } from '#models/index.js';
@@ -20,7 +20,7 @@ export type EditTopicsDropdownProps = {
   onUpdateTopic: (topic: Topic) => void;
   onDeleteTopic: (id: string) => void;
   onReorderTopics: (topicIds: string[]) => void;
-  children?: ReactNode;
+  children?: ReactElement;
 };
 
 /**
@@ -48,23 +48,24 @@ export function EditTopicsDropdown({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel className="flex items-center gap-2">
-          Edit Topics
-          <span className="text-xs font-normal text-muted-foreground">
-            (drag to reorder)
-          </span>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {topics.map((topic) => (
-          <SortableEditTopicsDropdownItem
-            key={topic.id}
-            topic={topic}
-            onUpdateTopic={onUpdateTopic}
-            onDeleteTopic={onDeleteTopic}
-          />
-        ))}
+      <DropdownMenuTrigger render={children} />
+      <DropdownMenuContent align="end" className="w-56 text-sm">
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>
+            Edit Topics{' '}
+            <span className="font-normal text-muted-foreground">
+              (drag to reorder)
+            </span>
+          </DropdownMenuLabel>
+          {topics.map((topic) => (
+            <SortableEditTopicsDropdownItem
+              key={topic.id}
+              topic={topic}
+              onUpdateTopic={onUpdateTopic}
+              onDeleteTopic={onDeleteTopic}
+            />
+          ))}
+        </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );

@@ -1,3 +1,8 @@
+import { useSuspenseQuery } from '@tanstack/react-query';
+import {
+  Autocomplete,
+  AutocompleteInput,
+} from '@workspace/shadcn/components/autocomplete';
 import { Button } from '@workspace/shadcn/components/button';
 import {
   Command,
@@ -13,8 +18,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@workspace/shadcn/components/select';
-import { PanelRight, Sparkles } from 'lucide-react';
+import {
+  AppWindowIcon,
+  AppWindowMacIcon,
+  PanelRight,
+  Sparkles,
+} from 'lucide-react';
 import { Activity, ReactNode, useState } from 'react';
+
+import { isMac } from '#utils/os.js';
 
 // TODO: rename this
 export type TopBarFilterMode = 'managed' | 'unmanaged';
@@ -34,6 +46,35 @@ export default function TopBar({
   onOpenSidePanel,
   children,
 }: TopBarProps) {
+  const isMacQuery = useSuspenseQuery({
+    queryKey: ['isMac'],
+    queryFn: async () => {
+      return isMac();
+    },
+  });
+  const selectItems = [
+    {
+      label: (
+        <>
+          <Sparkles className="text-yellow-500" /> All
+        </>
+      ),
+      value: 'managed',
+    },
+    {
+      label: (
+        <>
+          {isMacQuery.data ? (
+            <AppWindowMacIcon className="text-black" />
+          ) : (
+            <AppWindowIcon className="text-black" />
+          )}{' '}
+          Unmanaged
+        </>
+      ),
+      value: 'unmanaged',
+    },
+  ];
   return (
     <div
       className={`
@@ -42,16 +83,24 @@ export default function TopBar({
     >
       {/* Left Section - Filter Dropdown */}
       <div>
-        <Select value={filterMode} onValueChange={onFilterChange}>
+        <Select
+          items={selectItems}
+          value={filterMode}
+          onValueChange={(value) => {
+            if (value != null) {
+              onFilterChange(value);
+            }
+          }}
+        >
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="managed">
-              <Sparkles className="text-yellow-500" />
-              All
-            </SelectItem>
-            <SelectItem value="unmanaged">Ungrouped</SelectItem>
+          <SelectContent align="start">
+            {selectItems.map((item) => (
+              <SelectItem key={item.value} value={item.value}>
+                {item.label}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
@@ -64,6 +113,46 @@ export default function TopBar({
           <PanelRight />
         </Button>
       )}
+    </div>
+  );
+}
+
+export function TopBarAutocomplete({
+  value,
+  onValueChange,
+  onOpenCommandDialog,
+}: {
+  value: string;
+  onValueChange: (value: string) => void;
+  onOpenCommandDialog: () => void;
+}) {
+  return (
+    <div className={`flex-1 basis-[300px]`}>
+      <Autocomplete value={value} onValueChange={onValueChange}>
+        <AutocompleteInput
+          id="tags"
+          placeholder="Type a command using / or search..."
+          autoFocus
+          onKeyDown={(e) => {
+            if (value === '' && e.key === '/') {
+              e.preventDefault();
+              onOpenCommandDialog();
+            }
+          }}
+        />
+        {/* <AutocompletePositioner sideOffset={6}>
+          <AutocompletePopup>
+            <AutocompleteEmpty>No tags found.</AutocompleteEmpty>
+            <AutocompleteList>
+              {(tag: Tag) => (
+                <AutocompleteItem key={tag.id} value={tag.value}>
+                  {tag.value}
+                </AutocompleteItem>
+              )}
+            </AutocompleteList>
+          </AutocompletePopup>
+        </AutocompletePositioner> */}
+      </Autocomplete>
     </div>
   );
 }
