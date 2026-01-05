@@ -5,6 +5,7 @@ import {
   useSuspenseQuery,
 } from '@tanstack/react-query';
 import { Button } from '@workspace/shadcn/components/button';
+import { CommandShortcut } from '@workspace/shadcn/components/command';
 import {
   Empty,
   EmptyDescription,
@@ -45,7 +46,7 @@ import { WindowCardList } from '#components/WindowCardList.js';
 import { useTabsListeners } from '#hooks/useTabsListeners.js';
 import { useWindowsListeners } from '#hooks/useWindowsListeners.js';
 import { TabTopicAssignments, WindowData } from '#models/index.js';
-import { openSidePanel } from '#utils/management.js';
+import { openDashboard, openSidePanel } from '#utils/management.js';
 import { convertTabToTabData, sortTabs } from '#utils/tabs.js';
 
 function createSearchFilter(searchQuery: string) {
@@ -263,7 +264,13 @@ export default function ExtensionPage({ isPopup }: { isPopup?: boolean }) {
         commands={[
           {
             key: 'undo-close-tab',
-            label: 'Undo Close Tab',
+            label: (
+              <>
+                <span>Undo Close Tab</span>
+                {/* TODO: make sure this is the right shortcut */}
+                <CommandShortcut>⌘+⇧+T</CommandShortcut>
+              </>
+            ),
             onSelect: undoCloseTab.mutate,
           },
           {
@@ -280,6 +287,17 @@ export default function ExtensionPage({ isPopup }: { isPopup?: boolean }) {
             key: 'open-side-panel',
             label: 'Open Side Panel',
             onSelect: () => void openSidePanel(),
+          },
+          {
+            key: 'open-dashboard',
+            label: (
+              <>
+                <span>Open Dashboard</span>
+                {/* TODO: replace with shortcut from browser.commands.getAll() */}
+                <CommandShortcut>⌘+T</CommandShortcut>
+              </>
+            ),
+            onSelect: () => void openDashboard(),
           },
           // TODO: add more commands here
         ]}

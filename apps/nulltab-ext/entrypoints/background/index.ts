@@ -2,10 +2,8 @@ import { browser } from 'wxt/browser';
 import { defineBackground } from 'wxt/utils/define-background';
 
 import { registerTabService } from '#api/TabService.js';
-import { getMainTabGroup } from '#utils/management.js';
+import { getMainTabGroup, openDashboard } from '#utils/management.js';
 import { regroupTabs } from '#utils/tabs.js';
-
-import { openDashboard } from './commands';
 
 export default defineBackground(() => {
   registerTabService();

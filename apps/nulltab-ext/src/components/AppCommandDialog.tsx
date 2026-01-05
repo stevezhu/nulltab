@@ -7,7 +7,7 @@ import {
   CommandItem,
   CommandList,
 } from '@workspace/shadcn/components/command';
-import { useState } from 'react';
+import { ReactNode, useState } from 'react';
 
 export function AppCommandDialog({
   open,
@@ -18,7 +18,7 @@ export function AppCommandDialog({
   onOpenChange: (open: boolean) => void;
   commands: {
     key: string;
-    label: string;
+    label: ReactNode;
     onSelect: () => void;
   }[];
 }) {
@@ -68,7 +68,7 @@ export function AppCommandDialog({
                     onSelect();
                   }}
                 >
-                  <span>{label}</span>
+                  {label}
                 </CommandItem>
               );
             })}
