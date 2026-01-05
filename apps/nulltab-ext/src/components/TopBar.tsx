@@ -67,7 +67,7 @@ export default function TopBar({
           {isMacQuery.data ? (
             <AppWindowMacIcon className="text-black" />
           ) : (
-            <AppWindowIcon className={`text-black`} />
+            <AppWindowIcon className="text-black" />
           )}{' '}
           Unmanaged
         </>

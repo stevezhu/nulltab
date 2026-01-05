@@ -294,7 +294,7 @@ export default function ExtensionPage({ isPopup }: { isPopup?: boolean }) {
               <>
                 <span>Open Dashboard</span>
                 {/* TODO: replace with shortcut from browser.commands.getAll() */}
-                <CommandShortcut>⌘+T</CommandShortcut>
+                <CommandShortcut>⌥+T</CommandShortcut>
               </>
             ),
             onSelect: () => void openDashboard(),
