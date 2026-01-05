@@ -147,19 +147,20 @@ function NavigationMenuPositioner({
         )}
         {...props}
       >
-        <NavigationMenuPrimitive.Popup className={`
-          xs:w-(--popup-width)
-          relative h-(--popup-height) w-(--popup-width)
-          origin-(--transform-origin) rounded-lg bg-popover
-          text-popover-foreground shadow-sm ring-1 ring-foreground/10
-          transition-all ease-[cubic-bezier(0.22,1,0.36,1)] outline-none
-          data-[ending-style]:scale-90 data-[ending-style]:opacity-0
-          data-[ending-style]:duration-150
-          data-[starting-style]:scale-90 data-[starting-style]:opacity-0
-        `}>
-          <NavigationMenuPrimitive.Viewport className={`
-            relative size-full overflow-hidden
-          `} />
+        <NavigationMenuPrimitive.Popup
+          className={`
+            relative h-(--popup-height) w-(--popup-width)
+            origin-(--transform-origin) rounded-lg bg-popover
+            text-popover-foreground shadow-sm ring-1 ring-foreground/10
+            transition-all ease-[cubic-bezier(0.22,1,0.36,1)] outline-none
+            data-[ending-style]:scale-90 data-[ending-style]:opacity-0
+            data-[ending-style]:duration-150
+            data-[starting-style]:scale-90 data-[starting-style]:opacity-0
+          `}
+        >
+          <NavigationMenuPrimitive.Viewport
+            className={`relative size-full overflow-hidden`}
+          />
         </NavigationMenuPrimitive.Popup>
       </NavigationMenuPrimitive.Positioner>
     </NavigationMenuPrimitive.Portal>
@@ -209,9 +210,11 @@ function NavigationMenuIndicator({
       )}
       {...props}
     >
-      <div className={`
-        relative top-[60%] h-2 w-2 rotate-45 rounded-tl-sm bg-border shadow-md
-      `} />
+      <div
+        className={`
+          relative top-[60%] h-2 w-2 rotate-45 rounded-tl-sm bg-border shadow-md
+        `}
+      />
     </NavigationMenuPrimitive.Icon>
   );
 }

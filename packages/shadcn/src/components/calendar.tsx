@@ -101,7 +101,10 @@ function Calendar({
           defaultClassNames.dropdowns,
         ),
         dropdown_root: cn(
-          'cn-calendar-dropdown-root relative rounded-(--cell-radius)',
+          `
+            relative rounded-(--cell-radius) border border-input shadow-xs
+            has-focus:border-ring has-focus:ring-[3px] has-focus:ring-ring/50
+          `,
           defaultClassNames.dropdown_root,
         ),
         dropdown: cn(
@@ -113,8 +116,8 @@ function Calendar({
           captionLayout === 'label'
             ? 'text-sm'
             : `
-              cn-calendar-caption-label flex items-center gap-1
-              rounded-(--cell-radius) text-sm
+              flex h-8 items-center gap-1 rounded-(--cell-radius) pr-1 pl-2
+              text-sm
               [&>svg]:size-3.5 [&>svg]:text-muted-foreground
             `,
           defaultClassNames.caption_label,
@@ -154,7 +157,7 @@ function Calendar({
         ),
         range_start: cn(
           `
-            elative isolate -z-0 rounded-l-(--cell-radius) bg-muted
+            relative isolate -z-0 rounded-l-(--cell-radius) bg-muted
             after:absolute after:inset-y-0 after:right-0 after:w-4
             after:bg-muted
           `,
@@ -224,9 +227,12 @@ function Calendar({
         WeekNumber: ({ children, ...props }: WeekNumberProps) => {
           return (
             <td {...props}>
-              <div className={`
-                flex size-(--cell-size) items-center justify-center text-center
-              `}>
+              <div
+                className={`
+                  flex size-(--cell-size) items-center justify-center
+                  text-center
+                `}
+              >
                 {children}
               </div>
             </td>
