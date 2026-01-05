@@ -11,6 +11,8 @@
     "prefix": ""
   },
   "iconLibrary": "lucide",
+  "menuColor": "default",
+  "menuAccent": "subtle",
   "aliases": {
     "components": "@workspace/shadcn/components",
     "utils": "@workspace/shadcn/lib/utils",
@@ -18,7 +20,7 @@
     "lib": "@workspace/shadcn/lib",
     "hooks": "@workspace/shadcn/hooks"
   },
-  "menuColor": "default",
-  "menuAccent": "subtle",
-  "registries": {}
+  "registries": {
+    "@basecn": "https://basecn.dev/r/{name}.json"
+  }
 }
