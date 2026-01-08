@@ -1,11 +1,9 @@
-import { useDebouncedValue } from '@mantine/hooks';
 import {
   useMutation,
   useQueryClient,
   useSuspenseQuery,
 } from '@tanstack/react-query';
 import { Button } from '@workspace/shadcn/components/button';
-import { CommandShortcut } from '@workspace/shadcn/components/command';
 import {
   Empty,
   EmptyDescription,
@@ -14,9 +12,16 @@ import {
   EmptyTitle,
 } from '@workspace/shadcn/components/empty';
 import { Inbox, Search, Tag } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import {
+  Dispatch,
+  SetStateAction,
+  useDeferredValue,
+  useMemo,
+  useState,
+} from 'react';
 import { type Browser, browser } from 'wxt/browser';
 
+import { isMacQueryOptions } from '#api/queryOptions/isMac.js';
 import { mainTabGroupQueryOptions } from '#api/queryOptions/mainTabGroup.js';
 import { tabsQueryOptions } from '#api/queryOptions/tabs.js';
 import {
@@ -43,10 +48,11 @@ import {
   WindowCardTabs,
 } from '#components/WindowCard.js';
 import { WindowCardList } from '#components/WindowCardList.js';
+import { useAppCommandDialog } from '#hooks/useAppCommandDialog.js';
 import { useTabsListeners } from '#hooks/useTabsListeners.js';
 import { useWindowsListeners } from '#hooks/useWindowsListeners.js';
 import { TabTopicAssignments, WindowData } from '#models/index.js';
-import { openDashboard, openSidePanel } from '#utils/management.js';
+import { openSidePanel } from '#utils/management.js';
 import { convertTabToTabData, sortTabs } from '#utils/tabs.js';
 
 function createSearchFilter(searchQuery: string) {
@@ -84,36 +90,77 @@ export default function ExtensionPage({ isPopup }: { isPopup?: boolean }) {
   useTabsListeners();
   useWindowsListeners();
 
-  const [commandDialogOpen, setCommandDialogOpen] = useState(false);
   const [filterMode, setFilterMode] = useState<TopBarFilterMode>('managed');
   const [searchValue, setSearchValue] = useState<string>('');
-  const [debouncedSearchValue] = useDebouncedValue(searchValue, 500);
+  // TODO: use tanstack pacer for this?
+  const deferredSearchValue = useDeferredValue(searchValue);
+  // const deferredSearchValue = searchValue;
   const [selectedTopic, setSelectedTopic] = useState<TopicFilterValue>('all');
 
+  const { setIsCommandDialogOpen, commandDialogProps } = useAppCommandDialog();
+  const isMacQuery = useSuspenseQuery(isMacQueryOptions);
+
+  return (
+    <>
+      <div className="flex h-full flex-col">
+        {/* Reverse the markup order and use flex order to overlap correctly.
+      The final element will be on top. */}
+
+        {/* Content Area */}
+        <div className="order-3 flex-1 overflow-y-auto p-4">
+          <AppContent
+            filterMode={filterMode}
+            searchValue={deferredSearchValue}
+            selectedTopic={selectedTopic}
+            onSelectTopic={setSelectedTopic}
+          />
+        </div>
+
+        {/* Topic Tabs - only show in managed view */}
+        {filterMode === 'managed' && (
+          <div className="order-2">
+            <AppTopicsBar
+              selectedTopic={selectedTopic}
+              setSelectedTopic={setSelectedTopic}
+            />
+          </div>
+        )}
+
+        {/* Top Bar */}
+        <div className="order-1">
+          <TopBar
+            filterMode={filterMode}
+            onFilterChange={setFilterMode}
+            showSidePanelButton={isPopup}
+            onOpenSidePanel={openSidePanel}
+            isMac={isMacQuery.data}
+          >
+            <TopBarAutocomplete
+              value={searchValue}
+              onValueChange={(value) => {
+                setSearchValue(value);
+              }}
+              onOpenCommandDialog={() => {
+                setIsCommandDialogOpen(true);
+              }}
+            />
+          </TopBar>
+        </div>
+      </div>
+
+      <AppCommandDialog {...commandDialogProps} />
+    </>
+  );
+}
+
+function AppTopicsBar({
+  selectedTopic,
+  setSelectedTopic,
+}: {
+  selectedTopic: TopicFilterValue;
+  setSelectedTopic: Dispatch<SetStateAction<TopicFilterValue>>;
+}) {
   const queryClient = useQueryClient();
-
-  const suspendStaleTabs = useMutation({
-    mutationFn: () => tabService.suspendStaleTabs(),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['tabs'] });
-    },
-  });
-
-  const suspendGroupedTabs = useMutation({
-    mutationFn: () => tabService.suspendGroupedTabs(),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['tabs'] });
-    },
-  });
-
-  const undoCloseTab = useMutation({
-    mutationFn: async () => {
-      await browser.sessions.restore();
-    },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['tabs'] });
-    },
-  });
 
   const topicsQuery = useSuspenseQuery(topicsQueryOptions);
   const topics = topicsQuery.data;
@@ -198,111 +245,24 @@ export default function ExtensionPage({ isPopup }: { isPopup?: boolean }) {
   });
 
   return (
-    <>
-      <div className="flex h-full flex-col">
-        {/* Reverse the markup order and use flex order to overlap correctly.
-      The final element will be on top. */}
-
-        {/* Content Area */}
-        <div className="order-3 flex-1 overflow-y-auto p-4">
-          <AppContent
-            filterMode={filterMode}
-            searchValue={debouncedSearchValue}
-            selectedTopic={selectedTopic}
-            onSelectTopic={setSelectedTopic}
-          />
-        </div>
-
-        {/* Topic Tabs - only show in managed view */}
-        {filterMode === 'managed' && (
-          <div className="order-2">
-            <TopicsBar
-              topics={topics}
-              counts={topicCounts}
-              selectedTopic={selectedTopic}
-              onSelectTopic={setSelectedTopic}
-              onCreateTopic={(name, color) => {
-                createTopic.mutate({ name, color });
-              }}
-              onDeleteTopic={(id) => {
-                deleteTopic.mutate(id);
-              }}
-              onUpdateTopic={(topic) => {
-                updateTopic.mutate(topic);
-              }}
-              onReorderTopics={(topicIds) => {
-                reorderTopics.mutate(topicIds);
-              }}
-            />
-          </div>
-        )}
-
-        {/* Top Bar */}
-        <div className="order-1">
-          <TopBar
-            filterMode={filterMode}
-            onFilterChange={setFilterMode}
-            showSidePanelButton={isPopup}
-            onOpenSidePanel={openSidePanel}
-          >
-            <TopBarAutocomplete
-              value={searchValue}
-              onValueChange={(value) => {
-                setSearchValue(value);
-              }}
-              onOpenCommandDialog={() => {
-                setCommandDialogOpen(true);
-              }}
-            />
-          </TopBar>
-        </div>
-      </div>
-
-      <AppCommandDialog
-        open={commandDialogOpen}
-        onOpenChange={setCommandDialogOpen}
-        commands={[
-          {
-            key: 'undo-close-tab',
-            label: (
-              <>
-                <span>Undo Close Tab</span>
-                {/* TODO: make sure this is the right shortcut */}
-                <CommandShortcut>⌘+⇧+T</CommandShortcut>
-              </>
-            ),
-            onSelect: undoCloseTab.mutate,
-          },
-          {
-            key: 'suspend-stale-tabs',
-            label: 'Suspend Stale Tabs',
-            onSelect: suspendStaleTabs.mutate,
-          },
-          {
-            key: 'suspend-all-grouped-tabs',
-            label: 'Suspend All Grouped Tabs',
-            onSelect: suspendGroupedTabs.mutate,
-          },
-          {
-            key: 'open-side-panel',
-            label: 'Open Side Panel',
-            onSelect: () => void openSidePanel(),
-          },
-          {
-            key: 'open-dashboard',
-            label: (
-              <>
-                <span>Open Dashboard</span>
-                {/* TODO: replace with shortcut from browser.commands.getAll() */}
-                <CommandShortcut>⌥+T</CommandShortcut>
-              </>
-            ),
-            onSelect: () => void openDashboard(),
-          },
-          // TODO: add more commands here
-        ]}
-      />
-    </>
+    <TopicsBar
+      topics={topics}
+      counts={topicCounts}
+      selectedTopic={selectedTopic}
+      onSelectTopic={setSelectedTopic}
+      onCreateTopic={(name, color) => {
+        createTopic.mutate({ name, color });
+      }}
+      onDeleteTopic={(id) => {
+        deleteTopic.mutate(id);
+      }}
+      onUpdateTopic={(topic) => {
+        updateTopic.mutate(topic);
+      }}
+      onReorderTopics={(topicIds) => {
+        reorderTopics.mutate(topicIds);
+      }}
+    />
   );
 }
 

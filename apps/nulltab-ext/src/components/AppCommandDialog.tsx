@@ -9,11 +9,7 @@ import {
 } from '@workspace/shadcn/components/command';
 import { ReactNode, useState } from 'react';
 
-export function AppCommandDialog({
-  open,
-  onOpenChange,
-  commands,
-}: {
+export type AppCommandDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   commands: {
@@ -21,7 +17,13 @@ export function AppCommandDialog({
     label: ReactNode;
     onSelect: () => void;
   }[];
-}) {
+};
+
+export function AppCommandDialog({
+  open,
+  onOpenChange,
+  commands,
+}: AppCommandDialogProps) {
   const [commandInputValue, setCommandInputValue] = useState('/');
   return (
     <CommandDialog

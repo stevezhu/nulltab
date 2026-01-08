@@ -11,10 +11,11 @@ export function useTabsListeners() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const handleRefetch = () =>
+    const handleRefetch = () => {
       void queryClient.invalidateQueries({
         queryKey: tabsKeys.root,
       });
+    };
 
     browser.tabs.onCreated.addListener(handleRefetch);
     browser.tabs.onUpdated.addListener(handleRefetch);
