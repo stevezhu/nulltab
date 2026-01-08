@@ -3,7 +3,8 @@
   "private": true,
   "exports": {
     ".": {
-      "development": "./react-devtools.js"
+      "development": "./react-devtools.js",
+      "default": "./noop.js"
     }
   },
   "bin": {
