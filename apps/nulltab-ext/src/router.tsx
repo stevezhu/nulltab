@@ -4,10 +4,12 @@ import {
   createRouter,
   useRouter,
 } from '@tanstack/react-router';
+import {
+  ErrorFallback,
+  NotFoundFallback,
+  PendingFallback,
+} from '@workspace/ui/components/Fallback';
 
-import { ErrorFallback } from '#components/Fallback/ErrorFallback.js';
-import { NotFoundFallback } from '#components/Fallback/NotFoundFallback.js';
-import { PendingFallback } from '#components/Fallback/PendingFallback.js';
 import { routeTree } from '#routeTree.gen.js';
 
 export const queryClient = new QueryClient();
