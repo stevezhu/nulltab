@@ -3,6 +3,7 @@ import {
   useQueryClient,
   useSuspenseQuery,
 } from '@tanstack/react-query';
+import { createProxyService } from '@webext-core/proxy-service';
 import { Button } from '@workspace/shadcn/components/button';
 import {
   Empty,
@@ -21,6 +22,7 @@ import {
 } from 'react';
 import { type Browser, browser } from 'wxt/browser';
 
+import { TABS_SERVICE_KEY } from '#api/proxyService/proxyServiceKeys.js';
 import { isMacQueryOptions } from '#api/queryOptions/isMac.js';
 import { mainTabGroupQueryOptions } from '#api/queryOptions/mainTabGroup.js';
 import { tabsQueryOptions } from '#api/queryOptions/tabs.js';
@@ -31,7 +33,6 @@ import {
 } from '#api/queryOptions/topics.js';
 import { windowsQueryOptions } from '#api/queryOptions/windows.js';
 import { topicStorage } from '#api/storage/topicStorage.js';
-import { getTabService } from '#api/TabService.js';
 import { AppCommandDialog } from '#components/AppCommandDialog.js';
 import TopBar, {
   TopBarAutocomplete,
@@ -84,7 +85,7 @@ function createTopicFilter({
   };
 }
 
-const tabService = getTabService();
+const tabsService = createProxyService(TABS_SERVICE_KEY);
 
 export default function ExtensionPage({ isPopup }: { isPopup?: boolean }) {
   useTabsListeners();
@@ -362,14 +363,14 @@ function AppContent({
           .map(convertTabToTabData)}
         currentWindowId={currentWindow.id}
         onManageWindow={async ({ windowId }: { windowId: number }) => {
-          await tabService.manageWindow({ windowId });
+          await tabsService.manageWindow({ windowId });
 
           // Update local state
           // TODO: use mutation, invalidate queries instead of refetching
           await Promise.all([windowsQuery.refetch(), tabsQuery.refetch()]);
         }}
         onTabClick={({ tabId }: { tabId: number }) => {
-          void tabService.switchTab({ tabId });
+          void tabsService.switchTab({ tabId });
         }}
         emptyMessage="No tabs found"
       />
@@ -480,7 +481,7 @@ function AppContent({
               onClick={() => {
                 if (!tab.id || !mainTabGroup?.id || !mainTabGroup.windowId)
                   return;
-                void tabService.switchTab({
+                void tabsService.switchTab({
                   mainTabGroupId: mainTabGroup.id,
                   mainWindowId: mainTabGroup.windowId,
                   tabId: tab.id,

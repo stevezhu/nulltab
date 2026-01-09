@@ -1,14 +1,15 @@
 import { useMutation } from '@tanstack/react-query';
+import { createProxyService } from '@webext-core/proxy-service';
 import { CommandShortcut } from '@workspace/shadcn/components/command';
 import { Dispatch, SetStateAction, useState } from 'react';
 import { browser } from 'wxt/browser';
 
-import { getTabService } from '#api/TabService.js';
+import { TABS_SERVICE_KEY } from '#api/proxyService/proxyServiceKeys.js';
 import { AppCommandDialogProps } from '#components/AppCommandDialog.js';
 import { queryClient } from '#router.js';
 import { openDashboard, openSidePanel } from '#utils/management.js';
 
-const tabService = getTabService();
+const tabsService = createProxyService(TABS_SERVICE_KEY);
 
 export type UseAppCommandDialogReturn = {
   isCommandDialogOpen: boolean;
@@ -20,14 +21,14 @@ export function useAppCommandDialog(): UseAppCommandDialogReturn {
   const [isCommandDialogOpen, setIsCommandDialogOpen] = useState(false);
 
   const suspendStaleTabs = useMutation({
-    mutationFn: () => tabService.suspendStaleTabs(),
+    mutationFn: () => tabsService.suspendStaleTabs(),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['tabs'] });
     },
   });
 
   const suspendGroupedTabs = useMutation({
-    mutationFn: () => tabService.suspendGroupedTabs(),
+    mutationFn: () => tabsService.suspendGroupedTabs(),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['tabs'] });
     },
