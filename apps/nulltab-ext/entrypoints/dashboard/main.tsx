@@ -1,4 +1,5 @@
-import '@workspace/react-devtools';
+// import '@workspace/react-devtools';
+import 'virtual:react-devtools';
 import '#main.css';
 
 import { QueryClientProvider } from '@tanstack/react-query';
