@@ -1,4 +1,3 @@
-import { useSuspenseQuery } from '@tanstack/react-query';
 import {
   Autocomplete,
   AutocompleteInput,
@@ -26,8 +25,6 @@ import {
 } from 'lucide-react';
 import { Activity, ReactNode, useState } from 'react';
 
-import { isMac } from '#utils/os.js';
-
 // TODO: rename this
 export type TopBarFilterMode = 'managed' | 'unmanaged';
 
@@ -36,6 +33,7 @@ export type TopBarProps = {
   onFilterChange: (mode: TopBarFilterMode) => void;
   showSidePanelButton?: boolean;
   onOpenSidePanel?: () => void;
+  isMac?: boolean;
   children?: ReactNode;
 };
 
@@ -44,14 +42,9 @@ export default function TopBar({
   onFilterChange,
   showSidePanelButton = false,
   onOpenSidePanel,
+  isMac = false,
   children,
 }: TopBarProps) {
-  const isMacQuery = useSuspenseQuery({
-    queryKey: ['isMac'],
-    queryFn: async () => {
-      return isMac();
-    },
-  });
   const selectItems = [
     {
       label: (
@@ -64,7 +57,7 @@ export default function TopBar({
     {
       label: (
         <>
-          {isMacQuery.data ? (
+          {isMac ? (
             <AppWindowMacIcon className="text-black" />
           ) : (
             <AppWindowIcon className="text-black" />

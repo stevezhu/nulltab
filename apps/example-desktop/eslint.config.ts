@@ -14,7 +14,7 @@ export default defineConfig(
   {
     settings: {
       'better-tailwindcss': {
-        entryPoint: 'src/renderer/src/assets/main.css',
+        entryPoint: './src/renderer/src/assets/main.css',
       },
     },
   },

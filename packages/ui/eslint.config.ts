@@ -1,9 +1,9 @@
 import react from '@stzhu/eslint-config/react';
+import storybook from '@stzhu/eslint-config/storybook';
 import tailwind from '@stzhu/eslint-config/tailwind';
-import { defineConfig, globalIgnores } from 'eslint/config';
+import { defineConfig } from 'eslint/config';
 
 export default defineConfig(
-  globalIgnores(['dist/']),
   {
     languageOptions: {
       parserOptions: { tsconfigRootDir: import.meta.dirname },
@@ -18,4 +18,5 @@ export default defineConfig(
       },
     },
   },
+  storybook.configs.recommended,
 );

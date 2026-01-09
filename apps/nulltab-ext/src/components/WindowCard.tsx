@@ -157,19 +157,16 @@ export function WindowCardTab({
         <img
           src={favIconUrl}
           alt=""
-          className={cn(
-            'h-4 w-4 shrink-0',
-            discarded && 'opacity-50 grayscale',
-          )}
+          className={cn('h-4 w-4 shrink-0', discarded && 'grayscale')}
           onError={(e) => {
             e.currentTarget.style.display = 'none';
           }}
         />
       )}
-      <div className="min-w-0 flex-1 text-left">
+      <div className="flex-1">
         <div
           className={cn(
-            'overflow-hidden text-sm font-medium wrap-break-word',
+            'overflow-hidden text-sm font-medium wrap-anywhere',
             truncateTitle && `truncate`,
             discarded && 'text-muted-foreground italic',
           )}

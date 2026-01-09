@@ -1,0 +1,16 @@
+{
+  "name": "@workspace/react-devtools",
+  "private": true,
+  "exports": {
+    ".": {
+      "development": "./react-devtools.js",
+      "default": "./noop.js"
+    }
+  },
+  "bin": {
+    "react-devtools": "./bin.js"
+  },
+  "dependencies": {
+    "react-devtools": "^7.0.1"
+  }
+}

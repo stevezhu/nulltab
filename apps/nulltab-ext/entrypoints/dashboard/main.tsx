@@ -1,22 +1,20 @@
+import '@workspace/react-devtools';
 import '#main.css';
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { StrictMode, Suspense } from 'react';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { RouterProvider } from '@tanstack/react-router';
+import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
-import ExtensionPage from '#pages/ExtensionPage.js';
+import { queryClient, router } from '#router.js';
 
 const rootEl = document.getElementById('root');
 if (!rootEl) throw new Error('Failed to get root element');
 
-const queryClient = new QueryClient();
-
 createRoot(rootEl).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <Suspense>
-        <ExtensionPage />
-      </Suspense>
+      <RouterProvider router={router} />
     </QueryClientProvider>
   </StrictMode>,
 );
