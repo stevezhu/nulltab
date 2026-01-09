@@ -1,12 +1,14 @@
+import { registerService } from '@webext-core/proxy-service';
 import { browser } from 'wxt/browser';
 import { defineBackground } from 'wxt/utils/define-background';
 
-import { registerTabService } from '#api/TabService.js';
+import { TABS_SERVICE_KEY } from '#api/proxyService/proxyServiceKeys.js';
+import { TabsService } from '#api/proxyService/TabsService.js';
 import { getMainTabGroup, openDashboard } from '#utils/management.js';
 import { regroupTabs } from '#utils/tabs.js';
 
 export default defineBackground(() => {
-  registerTabService();
+  registerService(TABS_SERVICE_KEY, new TabsService());
 
   browser.commands.onCommand.addListener((command) => {
     switch (command) {
