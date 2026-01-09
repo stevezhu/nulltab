@@ -73,6 +73,7 @@ function RootLayout() {
                     {item.items.map((subItem) => (
                       <SidebarMenuItem key={subItem.title}>
                         <RouterSidebarMenuButton
+                          render={<a />}
                           to={subItem.url}
                           activeProps={{
                             isActive: true,

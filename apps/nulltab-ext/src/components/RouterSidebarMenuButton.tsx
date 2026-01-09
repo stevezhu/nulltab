@@ -1,6 +1,5 @@
 import { createLink } from '@tanstack/react-router';
 import { SidebarMenuButton } from '@workspace/shadcn/components/sidebar';
-import { ComponentProps } from 'react';
 
 /**
  * This component is a wrapper around the SidebarMenuButton component that adds
@@ -8,10 +7,4 @@ import { ComponentProps } from 'react';
  * @param props
  * @return
  */
-export const RouterSidebarMenuButton = createLink(
-  function RouterSidebarMenuButton(
-    props: ComponentProps<typeof SidebarMenuButton>,
-  ) {
-    return <SidebarMenuButton render={<a />} {...props} />;
-  },
-);
+export const RouterSidebarMenuButton = createLink(SidebarMenuButton);
