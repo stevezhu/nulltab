@@ -30,5 +30,13 @@ export default defineConfig(
         },
       },
     },
+    rules: {
+      'import/no-unresolved': [
+        'error',
+        {
+          ignore: ['virtual:react-devtools'],
+        },
+      ],
+    },
   },
 );
