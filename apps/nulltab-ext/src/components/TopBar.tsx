@@ -70,7 +70,7 @@ export default function TopBar({
           ) : (
             <AppWindowIcon className="text-black" />
           )}{' '}
-          Unmanaged
+          Ungrouped
         </>
       ),
       value: 'unmanaged',
