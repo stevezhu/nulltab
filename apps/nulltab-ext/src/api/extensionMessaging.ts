@@ -1,7 +1,7 @@
 import { defineExtensionMessaging } from '@webext-core/messaging';
 
 interface ProtocolMap {
-  flashTab(): number;
+  focusDashboardSearchInput(): number;
 }
 
 export const extensionMessaging = defineExtensionMessaging<ProtocolMap>();

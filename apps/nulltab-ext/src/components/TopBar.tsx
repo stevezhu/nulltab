@@ -10,6 +10,7 @@ import {
   CommandItem,
   CommandList,
 } from '@workspace/shadcn/components/command';
+import { Input } from '@workspace/shadcn/components/input';
 import {
   Select,
   SelectContent,
@@ -23,7 +24,14 @@ import {
   PanelRight,
   Sparkles,
 } from 'lucide-react';
-import { Activity, ReactNode, useState } from 'react';
+import {
+  Activity,
+  ReactNode,
+  Ref,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react';
 
 // TODO: rename this
 export type TopBarFilterMode = 'managed' | 'unmanaged';
@@ -110,19 +118,34 @@ export default function TopBar({
   );
 }
 
+export type TopBarAutocompleteHandle = {
+  focus: () => void;
+};
+
 export function TopBarAutocomplete({
+  ref,
   value,
   onValueChange,
   onOpenCommandDialog,
 }: {
+  ref?: Ref<TopBarAutocompleteHandle>;
   value: string;
   onValueChange: (value: string) => void;
   onOpenCommandDialog: () => void;
 }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  useImperativeHandle(ref, () => {
+    return {
+      focus: () => {
+        inputRef.current?.focus();
+      },
+    };
+  }, []);
   return (
     <div className={`flex-1 basis-[300px]`}>
       <Autocomplete value={value} onValueChange={onValueChange}>
         <AutocompleteInput
+          render={<Input ref={inputRef} />}
           id="tags"
           placeholder="Type a command using / or search..."
           autoFocus

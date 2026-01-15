@@ -17,11 +17,14 @@ import {
   Dispatch,
   SetStateAction,
   useDeferredValue,
+  useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import { type Browser, browser } from 'wxt/browser';
 
+import { extensionMessaging } from '#api/extensionMessaging.js';
 import { TABS_SERVICE_KEY } from '#api/proxyService/proxyServiceKeys.js';
 import { isMacQueryOptions } from '#api/queryOptions/isMac.js';
 import { mainTabGroupQueryOptions } from '#api/queryOptions/mainTabGroup.js';
@@ -36,6 +39,7 @@ import { topicStorage } from '#api/storage/topicStorage.js';
 import { AppCommandDialog } from '#components/AppCommandDialog.js';
 import TopBar, {
   TopBarAutocomplete,
+  TopBarAutocompleteHandle,
   type TopBarFilterMode,
 } from '#components/TopBar.js';
 import {
@@ -101,6 +105,14 @@ export default function ExtensionPage({ isPopup }: { isPopup?: boolean }) {
   const { setIsCommandDialogOpen, commandDialogProps } = useAppCommandDialog();
   const isMacQuery = useSuspenseQuery(isMacQueryOptions);
 
+  // NOTE: crucial to focus the autocomplete input when the dashboard tab is focused for ux
+  const autocompleteRef = useRef<TopBarAutocompleteHandle>(null);
+  useEffect(() => {
+    return extensionMessaging.onMessage('focusDashboardSearchInput', () => {
+      autocompleteRef.current?.focus();
+    });
+  }, []);
+
   return (
     <>
       <div className="flex h-full flex-col">
@@ -137,6 +149,7 @@ export default function ExtensionPage({ isPopup }: { isPopup?: boolean }) {
             isMac={isMacQuery.data}
           >
             <TopBarAutocomplete
+              ref={autocompleteRef}
               value={searchValue}
               onValueChange={(value) => {
                 setSearchValue(value);
