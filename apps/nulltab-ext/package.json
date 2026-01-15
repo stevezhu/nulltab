@@ -62,6 +62,7 @@
     "@workspace/shadcn": "workspace:*",
     "@wxt-dev/module-react": "^1.1.5",
     "babel-plugin-react-compiler": "^1.0.0",
+    "consola": "^3.4.2",
     "eslint": "catalog:",
     "eslint-import-resolver-wxt": "workspace:*",
     "react-devtools": "^7.0.1",

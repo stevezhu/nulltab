@@ -1,4 +1,3 @@
-// import '@workspace/react-devtools';
 import 'virtual:react-devtools';
 import '#main.css';
 
