@@ -49,12 +49,12 @@ export async function reloadAndFocusTab(
 }
 
 /**
- * The maximum number of recent tabs to keep ungrouped when switching to a new tab.
+ * The maximum number of tabs to keep ungrouped when switching to a new tab.
  *
  * This is used to keep the target tab and up to 4 most recently accessed tabs
- * ungrouped, while grouping all other tabs in the main window.
+ * ungrouped by default, while grouping all other tabs in the main window.
  */
-const MAX_RECENT_TABS = 4;
+const DEFAULT_MAX_UNGROUPED_TABS = 5;
 
 /**
  * This should be mainly only called from service workers.
@@ -65,6 +65,8 @@ export async function regroupTabs({
   tabId,
   mainWindowId,
   mainTabGroupId,
+  // TODO: check what if the number is negative
+  maxUngroupedTabs = DEFAULT_MAX_UNGROUPED_TABS,
 }: {
   /**
    * The id of the tab being focused.
@@ -72,37 +74,44 @@ export async function regroupTabs({
   tabId: number;
   mainWindowId: number;
   mainTabGroupId: number;
+  /**
+   * The maximum number of ungrouped tabs to keep open when switching tabs.
+   */
+  maxUngroupedTabs?: number;
 }) {
   const tabs = await browser.tabs.query({ windowId: mainWindowId });
-  const sortedTabs = sortTabs(tabs);
+  const tabIds = getTabIds(tabs);
 
   const recentTabs: Tab[] = [];
   const tabsToGroup: Tab[] = [];
-  for (const tab of sortedTabs) {
+  // NOTE: sorting is honestly probably faster than maxheap with the number of items we're dealing
+  // with. A user most likely wouldn't have more than 1000 tabs open.
+  for (const tab of sortTabs(tabs)) {
     if (tab.pinned || tab.id === tabId) continue;
 
-    if (recentTabs.length < MAX_RECENT_TABS) {
+    if (recentTabs.length < maxUngroupedTabs - 1) {
       recentTabs.push(tab);
     } else if (tab.groupId !== mainTabGroupId) {
       tabsToGroup.push(tab);
     }
   }
 
+  // TODO: should we keep recent tabs in the same order or just sort it by recent?
   // keep recent tabs in the same order
   const recentTabIdsSet = new Set(getTabIds(recentTabs));
-  const recentTabIdsInOrder = tabs.filter(
-    (tab) => tab.id !== undefined && recentTabIdsSet.has(tab.id),
+  const recentTabIdsInOrder = tabIds.filter((tabId) =>
+    recentTabIdsSet.has(tabId),
   );
-  const tabsToOpenIds = [...getTabIds(recentTabIdsInOrder), tabId];
-  const tabsToGroupIds = getTabIds(tabsToGroup);
+  const ungroupedTabIds = [...recentTabIdsInOrder, tabId];
+  const groupedTabIds = getTabIds(tabsToGroup);
 
   // 1. Group and ungroup the corresponding tabs
   await Promise.all([
-    hasAtLeastOne(tabsToOpenIds) && browser.tabs.ungroup(tabsToOpenIds),
-    hasAtLeastOne(tabsToGroupIds) &&
+    hasAtLeastOne(ungroupedTabIds) && browser.tabs.ungroup(ungroupedTabIds),
+    hasAtLeastOne(groupedTabIds) &&
       browser.tabs.group({
         groupId: mainTabGroupId,
-        tabIds: tabsToGroupIds,
+        tabIds: groupedTabIds,
       }),
   ]);
 
@@ -112,7 +121,7 @@ export async function regroupTabs({
       collapsed: true,
     }),
     // Move all open tabs to end: target tab first, then recent tabs (most to least recent)
-    browser.tabs.move(tabsToOpenIds, { index: -1 }),
+    browser.tabs.move(ungroupedTabIds, { index: -1 }),
   ]);
 }
 
@@ -129,20 +138,33 @@ export async function switchTab({
   tabId,
   mainTabGroupId,
   mainWindowId,
+  maxUngroupedTabs = DEFAULT_MAX_UNGROUPED_TABS,
 }: {
   tabId: number;
   mainTabGroupId?: number;
   mainWindowId?: number;
+  maxUngroupedTabs?: number;
 }) {
   const targetTab = await browser.tabs.get(tabId);
 
-  // only regroup if tab is in the main tab group
+  // Regroup if tab is in the main tab group OR if there are more than 5 ungrouped tabs
   if (
     mainWindowId !== undefined &&
     mainTabGroupId !== undefined &&
-    targetTab.groupId === mainTabGroupId
+    (targetTab.groupId === mainTabGroupId ||
+      (await browser.tabs
+        .query({
+          windowId: mainWindowId,
+          groupId: browser.tabGroups.TAB_GROUP_ID_NONE,
+        })
+        .then((tabs) => tabs.length)) > maxUngroupedTabs)
   ) {
-    await regroupTabs({ tabId, mainWindowId, mainTabGroupId });
+    await regroupTabs({
+      tabId,
+      mainWindowId,
+      mainTabGroupId,
+      maxUngroupedTabs,
+    });
   }
   await reloadAndFocusTab(targetTab);
 }

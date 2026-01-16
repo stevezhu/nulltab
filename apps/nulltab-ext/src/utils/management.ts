@@ -1,6 +1,7 @@
 import { type Browser, browser } from 'wxt/browser';
 import { storage } from 'wxt/utils/storage';
 
+import { extensionMessaging } from '#api/extensionMessaging.js';
 import { hasAtLeastOne } from '#utils/array.js';
 import { switchTab } from '#utils/tabs.js';
 
@@ -23,10 +24,14 @@ export async function openDashboard(): Promise<void> {
   }
 
   const window = await browser.windows.get(tab.windowId);
+  await extensionMessaging.sendMessage(
+    'focusDashboardSearchInput',
+    undefined,
+    tab.id,
+  );
   if (tab.active && window.focused) {
     // TODO: not necessarily needed for now
-    // Dashboard is already focused, send message to trigger flash effect
-    // await extensionMessaging.sendMessage('flashTab', undefined, tab.id);
+    // was originally intented to trigger a flash effect when the dashboard is already active
   } else {
     // Dashboard already open, switch to it
     const mainTabGroup = await getMainTabGroup();
