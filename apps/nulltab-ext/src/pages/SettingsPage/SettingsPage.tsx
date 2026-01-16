@@ -9,13 +9,7 @@ import {
   SidebarMenuItem,
   SidebarProvider,
 } from '@workspace/shadcn/components/sidebar';
-import {
-  Info,
-  NotebookTabs as TabsIcon,
-  Palette,
-  Settings,
-  Tag,
-} from 'lucide-react';
+import { Info, NotebookTabs as TabsIcon, Palette, Tag } from 'lucide-react';
 import { Suspense, useState } from 'react';
 
 import { AboutSection } from './AboutSection.js';
@@ -37,25 +31,12 @@ export function SettingsPage() {
     useState<SettingsSection>('appearance');
 
   return (
-    <div className="flex min-h-screen justify-center bg-muted/30 p-8">
+    <div className="flex min-h-screen justify-center px-8 py-12">
       <div
         className={`
           flex h-fit w-full max-w-5xl flex-col overflow-hidden bg-background
         `}
       >
-        {/* Header */}
-        <div className="flex items-center gap-2 px-6 py-4">
-          <Settings />
-          <h1
-            className={`
-              scroll-m-20 text-center text-4xl font-extrabold tracking-tight
-              text-balance
-            `}
-          >
-            NullTab extension settings
-          </h1>
-        </div>
-
         {/* Sidebar + Content */}
         <SidebarProvider className="flex-1">
           <Sidebar collapsible="none">

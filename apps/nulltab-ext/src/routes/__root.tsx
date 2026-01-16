@@ -27,6 +27,7 @@ import {
   SidebarRail,
   SidebarTrigger,
 } from '@workspace/shadcn/components/sidebar';
+import { HomeIcon, Settings2Icon } from 'lucide-react';
 import { Fragment } from 'react';
 
 import { RouterBreadcrumbLink } from '#components/RouterBreadcrumbLink.js';
@@ -46,10 +47,12 @@ function RootLayout() {
           {
             title: 'Home',
             url: '/' satisfies LinkProps['to'],
+            icon: <HomeIcon />,
           },
           {
             title: 'Settings',
             url: '/settings' satisfies LinkProps['to'],
+            icon: <Settings2Icon />,
           },
         ],
       },
@@ -63,7 +66,7 @@ function RootLayout() {
   return (
     <>
       <SidebarProvider className="h-screen">
-        <Sidebar>
+        <Sidebar collapsible="icon">
           <SidebarContent>
             {data.navMain.map((item) => (
               <SidebarGroup key={item.title}>
@@ -82,7 +85,8 @@ function RootLayout() {
                           preload="intent"
                           preloadDelay={100}
                         >
-                          {subItem.title}
+                          {subItem.icon}
+                          <span>{subItem.title}</span>
                         </RouterSidebarMenuButton>
                       </SidebarMenuItem>
                     ))}
