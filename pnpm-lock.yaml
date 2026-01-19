@@ -706,12 +706,6 @@ importers:
         specifier: 'catalog:'
         version: 5.9.3
 
-  packages/react-devtools:
-    dependencies:
-      react-devtools:
-        specifier: ^7.0.1
-        version: 7.0.1
-
   packages/shadcn:
     dependencies:
       '@base-ui/react':
