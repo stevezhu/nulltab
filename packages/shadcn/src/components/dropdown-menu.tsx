@@ -3,7 +3,9 @@ import { cn } from '@workspace/shadcn/lib/utils';
 import { CheckIcon, ChevronRightIcon } from 'lucide-react';
 import * as React from 'react';
 
-function DropdownMenu({ ...props }: MenuPrimitive.Root.Props) {
+function DropdownMenu<Payload = unknown>({
+  ...props
+}: MenuPrimitive.Root.Props<Payload>) {
   return <MenuPrimitive.Root data-slot="dropdown-menu" {...props} />;
 }
 
@@ -11,8 +13,15 @@ function DropdownMenuPortal({ ...props }: MenuPrimitive.Portal.Props) {
   return <MenuPrimitive.Portal data-slot="dropdown-menu-portal" {...props} />;
 }
 
-function DropdownMenuTrigger({ ...props }: MenuPrimitive.Trigger.Props) {
-  return <MenuPrimitive.Trigger data-slot="dropdown-menu-trigger" {...props} />;
+function DropdownMenuTrigger<Payload = unknown>({
+  ...props
+}: MenuPrimitive.Trigger.Props<Payload>) {
+  return (
+    <MenuPrimitive.Trigger<Payload>
+      data-slot="dropdown-menu-trigger"
+      {...props}
+    />
+  );
 }
 
 function DropdownMenuContent({
@@ -312,8 +321,11 @@ function DropdownMenuShortcut({
   );
 }
 
+const DropdownMenuExport = Object.assign(DropdownMenu, {
+  createHandle: MenuPrimitive.createHandle,
+});
 export {
-  DropdownMenu,
+  DropdownMenuExport as DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuGroup,
