@@ -76,29 +76,31 @@ function createTopicFilter({
 
 const tabsService = createProxyService(TABS_SERVICE_KEY);
 
-export type UnmanagedWindowsProps = {
+export type UngroupedTabsWindowListProps = {
   searchValue: string;
 };
 
-export function UnmanagedWindows({ searchValue }: UnmanagedWindowsProps) {
+export function UngroupedTabWindowList({
+  searchValue,
+}: UngroupedTabsWindowListProps) {
   const queryClient = useQueryClient();
 
   const { data: currentWindow } = useSuspenseQuery(currentWindowQueryOptions);
   const { data: windows } = useSuspenseQuery(windowsQueryOptions);
-  const unmanagedTabs = useSuspenseQueries({
+  const ungroupedTabs = useSuspenseQueries({
     queries: [tabsQueryOptions, mainTabGroupQueryOptions],
     combine: ([tabsQuery, mainTabGroupQuery]) => {
       const mainTabGroup = mainTabGroupQuery.data;
-      const unmanagedTabs = tabsQuery.data.filter(
+      const ungroupedTabs = tabsQuery.data.filter(
         (tab) => tab.id && mainTabGroup?.windowId !== tab.windowId,
       );
-      return unmanagedTabs;
+      return ungroupedTabs;
     },
   });
   const filteredTabDataList = useMemo(() => {
     const searchFilter = createSearchFilter(searchValue);
-    return unmanagedTabs.filter(searchFilter).map(convertTabToTabData);
-  }, [unmanagedTabs, searchValue]);
+    return ungroupedTabs.filter(searchFilter).map(convertTabToTabData);
+  }, [ungroupedTabs, searchValue]);
 
   return (
     <WindowCardList
@@ -239,17 +241,15 @@ export function AllTabs({
       );
     }
 
-    // Default: no managed tabs at all
     return (
       <Empty>
         <EmptyHeader>
           <EmptyMedia variant="icon">
             <Inbox />
           </EmptyMedia>
-          <EmptyTitle>No managed tabs</EmptyTitle>
+          <EmptyTitle>No tabs</EmptyTitle>
           <EmptyDescription>
-            Switch to &quot;Unmanaged&quot; to see your open tabs and start
-            managing them.
+            No tabs are available right now. Open a tab or adjust your filters.
           </EmptyDescription>
         </EmptyHeader>
       </Empty>

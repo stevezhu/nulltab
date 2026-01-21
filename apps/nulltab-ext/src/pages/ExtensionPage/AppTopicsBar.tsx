@@ -36,13 +36,13 @@ export function AppTopicsBar({
   const tabAssignmentsQuery = useSuspenseQuery(tabAssignmentsQueryOptions);
   const mainTabGroupQuery = useSuspenseQuery(mainTabGroupQueryOptions);
 
-  // Compute topic counts from managed tabs
+  // Compute topic counts from grouped tabs
   const topicCounts = useMemo((): TopicCounts => {
     const mainTabGroup = mainTabGroupQuery.data;
     const tabAssignments = tabAssignmentsQuery.data;
 
-    // Filter to managed tabs only
-    const managedTabs = tabsQuery.data.filter(
+    // Filter to grouped tabs only
+    const groupedTabs = tabsQuery.data.filter(
       (tab) => tab.id && mainTabGroup?.windowId === tab.windowId,
     );
 
@@ -55,7 +55,7 @@ export function AppTopicsBar({
     }
 
     // Count tabs by topic
-    for (const tab of managedTabs) {
+    for (const tab of groupedTabs) {
       const topicId = tab.url ? tabAssignments[tab.url] : undefined;
       if (topicId && byTopic[topicId] !== undefined) {
         byTopic[topicId]++;
@@ -65,7 +65,7 @@ export function AppTopicsBar({
     }
 
     return {
-      all: managedTabs.length,
+      all: groupedTabs.length,
       uncategorized,
       byTopic,
     };

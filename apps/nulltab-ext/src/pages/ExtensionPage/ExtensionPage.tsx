@@ -15,19 +15,23 @@ import { useTabsListeners } from '#hooks/useTabsListeners.js';
 import { useWindowsListeners } from '#hooks/useWindowsListeners.js';
 import { openSidePanel } from '#utils/management.js';
 
-import { AllTabs, UnmanagedWindows } from './AppContent';
+import { AllTabs, UngroupedTabWindowList } from './AppContent';
 import { AppTopicsBar } from './AppTopicsBar';
 
 export function ExtensionPage({ isPopup }: { isPopup?: boolean }) {
   useTabsListeners();
   useWindowsListeners();
 
-  const [filterMode, setFilterMode] = useState<TopBarFilterMode>('managed');
+  const [filterMode, setFilterMode] = useState<TopBarFilterMode>(
+    'all' satisfies TopBarFilterMode,
+  );
   const [searchValue, setSearchValue] = useState<string>('');
   // TODO: use tanstack pacer for this?
   const deferredSearchValue = useDeferredValue(searchValue);
   // const deferredSearchValue = searchValue;
-  const [selectedTopic, setSelectedTopic] = useState<TopicFilterValue>('all');
+  const [selectedTopic, setSelectedTopic] = useState<TopicFilterValue>(
+    'all' satisfies TopicFilterValue,
+  );
 
   const { setIsCommandDialogOpen, commandDialogProps } = useAppCommandDialog();
   const isMacQuery = useSuspenseQuery(isMacQueryOptions);
@@ -48,8 +52,8 @@ export function ExtensionPage({ isPopup }: { isPopup?: boolean }) {
 
         {/* Content Area */}
         <div className="order-3 flex-1 overflow-y-auto p-4">
-          {filterMode === 'unmanaged' ? (
-            <UnmanagedWindows searchValue={deferredSearchValue} />
+          {filterMode === 'ungrouped' ? (
+            <UngroupedTabWindowList searchValue={deferredSearchValue} />
           ) : (
             <AllTabs
               searchValue={deferredSearchValue}
@@ -59,8 +63,8 @@ export function ExtensionPage({ isPopup }: { isPopup?: boolean }) {
           )}
         </div>
 
-        {/* Topic Tabs - only show in managed view */}
-        {filterMode === 'managed' && (
+        {/* Topic Tabs - only show in all view */}
+        {filterMode === 'all' && (
           <div className="order-2">
             <AppTopicsBar
               selectedTopic={selectedTopic}

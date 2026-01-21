@@ -28,7 +28,7 @@ export type WindowCardListProps = {
 };
 
 /**
- * Used to display unmanaged open tabs.
+ * Used to display ungrouped open tabs.
  * @param props
  * @returns
  */
@@ -59,10 +59,10 @@ export function WindowCardList({
           <EmptyMedia variant="icon">
             <Sparkles />
           </EmptyMedia>
-          <EmptyTitle>All tabs are managed</EmptyTitle>
+          <EmptyTitle>All tabs are grouped</EmptyTitle>
           <EmptyDescription>
             {emptyMessage ??
-              'All your open tabs are being managed. Switch to "Managed" to see them.'}
+              'No ungrouped tabs right now. Switch to "All" to see your other tabs.'}
           </EmptyDescription>
         </EmptyHeader>
       </Empty>
