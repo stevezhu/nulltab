@@ -13,20 +13,10 @@ import {
   EmptyTitle,
 } from '@workspace/shadcn/components/empty';
 import { Inbox, Search, Tag } from 'lucide-react';
-import {
-  Dispatch,
-  SetStateAction,
-  useDeferredValue,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useMemo } from 'react';
 import { type Browser, browser } from 'wxt/browser';
 
-import { extensionMessaging } from '#api/extensionMessaging.js';
 import { TABS_SERVICE_KEY } from '#api/proxyService/proxyServiceKeys.js';
-import { isMacQueryOptions } from '#api/queryOptions/isMac.js';
 import { mainTabGroupQueryOptions } from '#api/queryOptions/mainTabGroup.js';
 import { tabsQueryOptions } from '#api/queryOptions/tabs.js';
 import {
@@ -36,28 +26,15 @@ import {
 } from '#api/queryOptions/topics.js';
 import { windowsQueryOptions } from '#api/queryOptions/windows.js';
 import { topicStorage } from '#api/storage/topicStorage.js';
-import { AppCommandDialog } from '#components/AppCommandDialog.js';
-import TopBar, {
-  TopBarAutocomplete,
-  TopBarAutocompleteHandle,
-  type TopBarFilterMode,
-} from '#components/TopBar.js';
-import {
-  type TopicCounts,
-  TopicFilterValue,
-  TopicsBar,
-} from '#components/TopicsBar.js';
+import { type TopBarFilterMode } from '#components/TopBar.js';
+import { TopicFilterValue } from '#components/TopicsBar.js';
 import {
   WindowCard,
   WindowCardTab,
   WindowCardTabs,
 } from '#components/WindowCard.js';
 import { WindowCardList } from '#components/WindowCardList.js';
-import { useAppCommandDialog } from '#hooks/useAppCommandDialog.js';
-import { useTabsListeners } from '#hooks/useTabsListeners.js';
-import { useWindowsListeners } from '#hooks/useWindowsListeners.js';
 import { TabTopicAssignments, WindowData } from '#models/index.js';
-import { openSidePanel } from '#utils/management.js';
 import { convertTabToTabData, sortTabs } from '#utils/tabs.js';
 
 function createSearchFilter(searchQuery: string) {
@@ -91,196 +68,7 @@ function createTopicFilter({
 
 const tabsService = createProxyService(TABS_SERVICE_KEY);
 
-export default function ExtensionPage({ isPopup }: { isPopup?: boolean }) {
-  useTabsListeners();
-  useWindowsListeners();
-
-  const [filterMode, setFilterMode] = useState<TopBarFilterMode>('managed');
-  const [searchValue, setSearchValue] = useState<string>('');
-  // TODO: use tanstack pacer for this?
-  const deferredSearchValue = useDeferredValue(searchValue);
-  // const deferredSearchValue = searchValue;
-  const [selectedTopic, setSelectedTopic] = useState<TopicFilterValue>('all');
-
-  const { setIsCommandDialogOpen, commandDialogProps } = useAppCommandDialog();
-  const isMacQuery = useSuspenseQuery(isMacQueryOptions);
-
-  // NOTE: crucial to focus the autocomplete input when the dashboard tab is focused for ux
-  const autocompleteRef = useRef<TopBarAutocompleteHandle>(null);
-  useEffect(() => {
-    return extensionMessaging.onMessage('focusDashboardSearchInput', () => {
-      autocompleteRef.current?.focus();
-    });
-  }, []);
-
-  return (
-    <>
-      <div className="flex h-full flex-col">
-        {/* Reverse the markup order and use flex order to overlap correctly.
-      The final element will be on top. */}
-
-        {/* Content Area */}
-        <div className="order-3 flex-1 overflow-y-auto p-4">
-          <AppContent
-            filterMode={filterMode}
-            searchValue={deferredSearchValue}
-            selectedTopic={selectedTopic}
-            onSelectTopic={setSelectedTopic}
-          />
-        </div>
-
-        {/* Topic Tabs - only show in managed view */}
-        {filterMode === 'managed' && (
-          <div className="order-2">
-            <AppTopicsBar
-              selectedTopic={selectedTopic}
-              setSelectedTopic={setSelectedTopic}
-            />
-          </div>
-        )}
-
-        {/* Top Bar */}
-        <div className="order-1">
-          <TopBar
-            filterMode={filterMode}
-            onFilterChange={setFilterMode}
-            showSidePanelButton={isPopup}
-            onOpenSidePanel={openSidePanel}
-            isMac={isMacQuery.data}
-          >
-            <TopBarAutocomplete
-              ref={autocompleteRef}
-              value={searchValue}
-              onValueChange={(value) => {
-                setSearchValue(value);
-              }}
-              onOpenCommandDialog={() => {
-                setIsCommandDialogOpen(true);
-              }}
-            />
-          </TopBar>
-        </div>
-      </div>
-
-      <AppCommandDialog {...commandDialogProps} />
-    </>
-  );
-}
-
-function AppTopicsBar({
-  selectedTopic,
-  setSelectedTopic,
-}: {
-  selectedTopic: TopicFilterValue;
-  setSelectedTopic: Dispatch<SetStateAction<TopicFilterValue>>;
-}) {
-  const queryClient = useQueryClient();
-
-  const topicsQuery = useSuspenseQuery(topicsQueryOptions);
-  const topics = topicsQuery.data;
-
-  // Query data needed for topic counts
-  const tabsQuery = useSuspenseQuery(tabsQueryOptions);
-  const tabAssignmentsQuery = useSuspenseQuery(tabAssignmentsQueryOptions);
-  const mainTabGroupQuery = useSuspenseQuery(mainTabGroupQueryOptions);
-
-  // Compute topic counts from managed tabs
-  const topicCounts = useMemo((): TopicCounts => {
-    const mainTabGroup = mainTabGroupQuery.data;
-    const tabAssignments = tabAssignmentsQuery.data;
-
-    // Filter to managed tabs only
-    const managedTabs = tabsQuery.data.filter(
-      (tab) => tab.id && mainTabGroup?.windowId === tab.windowId,
-    );
-
-    let uncategorized = 0;
-    const byTopic: Record<string, number> = {};
-
-    // Initialize counts for all topics
-    for (const topic of topics) {
-      byTopic[topic.id] = 0;
-    }
-
-    // Count tabs by topic
-    for (const tab of managedTabs) {
-      const topicId = tab.url ? tabAssignments[tab.url] : undefined;
-      if (topicId && byTopic[topicId] !== undefined) {
-        byTopic[topicId]++;
-      } else {
-        uncategorized++;
-      }
-    }
-
-    return {
-      all: managedTabs.length,
-      uncategorized,
-      byTopic,
-    };
-  }, [
-    tabsQuery.data,
-    tabAssignmentsQuery.data,
-    mainTabGroupQuery.data,
-    topics,
-  ]);
-
-  const createTopic = useMutation({
-    mutationFn: (data: { name: string; color?: string }) =>
-      topicStorage.saveTopic(data),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: topicsKeys.root });
-    },
-  });
-
-  const deleteTopic = useMutation({
-    mutationFn: (id: string) => topicStorage.deleteTopic(id),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: topicsKeys.root });
-      // Reset filter if the deleted topic was selected
-      setSelectedTopic((current) =>
-        current === 'all' || current === 'uncategorized' ? current : 'all',
-      );
-    },
-  });
-
-  const updateTopic = useMutation({
-    mutationFn: (topic: { id: string; name: string; color?: string }) =>
-      topicStorage.updateTopic(topic),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: topicsKeys.root });
-    },
-  });
-
-  const reorderTopics = useMutation({
-    mutationFn: (topicIds: string[]) => topicStorage.reorderTopics(topicIds),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: topicsKeys.root });
-    },
-  });
-
-  return (
-    <TopicsBar
-      topics={topics}
-      counts={topicCounts}
-      selectedTopic={selectedTopic}
-      onSelectTopic={setSelectedTopic}
-      onCreateTopic={(name, color) => {
-        createTopic.mutate({ name, color });
-      }}
-      onDeleteTopic={(id) => {
-        deleteTopic.mutate(id);
-      }}
-      onUpdateTopic={(topic) => {
-        updateTopic.mutate(topic);
-      }}
-      onReorderTopics={(topicIds) => {
-        reorderTopics.mutate(topicIds);
-      }}
-    />
-  );
-}
-
-function AppContent({
+export function AppContent({
   filterMode,
   searchValue,
   selectedTopic,
