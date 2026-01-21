@@ -9,14 +9,14 @@ import TopBar, {
   TopBarAutocompleteHandle,
   type TopBarFilterMode,
 } from '#components/TopBar.js';
-import { TopicFilterValue } from '#components/TopicsBar.js';
+import { TopicFilterValue, TopicsBar } from '#components/TopicsBar.js';
 import { useAppCommandDialog } from '#hooks/useAppCommandDialog.js';
 import { useTabsListeners } from '#hooks/useTabsListeners.js';
 import { useWindowsListeners } from '#hooks/useWindowsListeners.js';
 import { openSidePanel } from '#utils/management.js';
 
 import { AllTabs, UngroupedTabWindowList } from './AppContent';
-import { AppTopicsBar } from './AppTopicsBar';
+import { useTopicsBar } from './useTopicsBar';
 
 export function ExtensionPage({ isPopup }: { isPopup?: boolean }) {
   useTabsListeners();
@@ -44,6 +44,11 @@ export function ExtensionPage({ isPopup }: { isPopup?: boolean }) {
     });
   }, []);
 
+  const topicsBarProps = useTopicsBar({
+    selectedTopic,
+    setSelectedTopic,
+  });
+
   return (
     <>
       <div className="flex h-full flex-col">
@@ -66,10 +71,7 @@ export function ExtensionPage({ isPopup }: { isPopup?: boolean }) {
         {/* Topic Tabs - only show in all view */}
         {filterMode === 'all' && (
           <div className="order-2">
-            <AppTopicsBar
-              selectedTopic={selectedTopic}
-              setSelectedTopic={setSelectedTopic}
-            />
+            <TopicsBar {...topicsBarProps} />
           </div>
         )}
 
