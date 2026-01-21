@@ -31,6 +31,7 @@
     "@stzhu/tsconfig": "catalog:",
     "@types/node": "catalog:",
     "eslint": "catalog:",
+    "typescript": "catalog:",
     "vite": "catalog:",
     "wrangler": "^4.58.0"
   }

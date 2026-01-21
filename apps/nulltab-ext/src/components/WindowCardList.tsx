@@ -28,7 +28,7 @@ export type WindowCardListProps = {
 };
 
 /**
- * Used to display unmanaged open tabs.
+ * Used to display ungrouped open tabs.
  * @param props
  * @returns
  */
@@ -59,10 +59,10 @@ export function WindowCardList({
           <EmptyMedia variant="icon">
             <Sparkles />
           </EmptyMedia>
-          <EmptyTitle>All tabs are managed</EmptyTitle>
+          <EmptyTitle>All tabs are grouped</EmptyTitle>
           <EmptyDescription>
             {emptyMessage ??
-              'All your open tabs are being managed. Switch to "Managed" to see them.'}
+              'No ungrouped tabs right now. Switch to "All" to see your other tabs.'}
           </EmptyDescription>
         </EmptyHeader>
       </Empty>
@@ -71,16 +71,17 @@ export function WindowCardList({
   return (
     <div className="flex flex-col gap-6">
       {windows.map((window) => {
-        if (!window.id) return null;
+        const windowId = window.id;
+        if (!windowId) return null;
 
-        const tabs = tabsByWindow.get(window.id) ?? [];
+        const tabs = tabsByWindow.get(windowId) ?? [];
         if (tabs.length === 0) return null;
 
-        const isCurrentWindow = window.id === currentWindowId;
+        const isCurrentWindow = windowId === currentWindowId;
         return (
-          <WindowCard key={window.id} active={isCurrentWindow}>
+          <WindowCard key={windowId} active={isCurrentWindow}>
             <WindowCardHeader
-              title={`Window ${window.id}${isCurrentWindow ? ' (Current)' : ''}`}
+              title={`Window ${windowId}${isCurrentWindow ? ' (Current)' : ''}`}
               tabCount={tabs.length}
             >
               <div className="flex gap-2">
@@ -89,7 +90,7 @@ export function WindowCardList({
                     variant="default"
                     size="icon"
                     onClick={() => {
-                      onManageWindow({ windowId: window.id });
+                      onManageWindow({ windowId });
                     }}
                   >
                     <FolderInput />

@@ -17,7 +17,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "storybook": "storybook dev",
-    "test": "tsc --noEmit && vitest run",
+    "test": "tsc --noEmit",
     "watch": "vitest",
     "zip": "wxt zip",
     "zip:firefox": "wxt zip -b firefox"

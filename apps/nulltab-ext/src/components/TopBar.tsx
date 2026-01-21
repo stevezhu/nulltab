@@ -34,7 +34,7 @@ import {
 } from 'react';
 
 // TODO: rename this
-export type TopBarFilterMode = 'managed' | 'unmanaged';
+export type TopBarFilterMode = 'all' | 'ungrouped';
 
 export type TopBarProps = {
   filterMode: TopBarFilterMode;
@@ -53,14 +53,14 @@ export default function TopBar({
   isMac = false,
   children,
 }: TopBarProps) {
-  const selectItems = [
+  const selectItems: { label: ReactNode; value: TopBarFilterMode }[] = [
     {
       label: (
         <>
           <Sparkles className="text-yellow-500" /> All
         </>
       ),
-      value: 'managed',
+      value: 'all',
     },
     {
       label: (
@@ -73,7 +73,7 @@ export default function TopBar({
           Ungrouped
         </>
       ),
-      value: 'unmanaged',
+      value: 'ungrouped',
     },
   ];
   return (

@@ -4,18 +4,14 @@ import { type Browser } from 'wxt/browser';
 /**
  * Basic subset of window data that can be used to render a window.
  */
-export type WindowData = {
-  /**
-   * Define manually to make this required.
-   */
-  id: number;
-};
+export type WindowData = Pick<Browser.windows.Window, 'id'>;
 
 /**
  * Basic subset of tab data that can be used to render a tab.
  */
 export type TabData = Pick<
   Browser.tabs.Tab,
+  | 'id'
   | 'windowId'
   | 'title'
   | 'url'
@@ -23,12 +19,7 @@ export type TabData = Pick<
   | 'active'
   | 'lastAccessed'
   | 'discarded'
-> & {
-  /**
-   * Define manually to make this required.
-   */
-  id: number;
-};
+>;
 
 const Timestamp = Type.Codec(Type.Number())
   .Decode((value) => new Date(value))
