@@ -15,32 +15,37 @@ export async function openSidePanel() {
 
 const DASHBOARD_URL = browser.runtime.getURL('/dashboard.html');
 
-export async function openDashboard(): Promise<void> {
-  const [tab] = await browser.tabs.query({ url: DASHBOARD_URL });
-  // Dashboard not open, create new tab
-  if (!tab || tab.id === undefined) {
-    await browser.tabs.create({ url: DASHBOARD_URL });
-    return;
+export type OpenDashboardMode = 'global' | 'current-window' | 'always';
+
+export async function openDashboard(
+  mode: OpenDashboardMode = 'global',
+): Promise<void> {
+  if (mode === 'global' || mode === 'current-window') {
+    const [tab] = await browser.tabs.query({
+      url: DASHBOARD_URL,
+      currentWindow: mode === 'current-window' ? true : undefined,
+    });
+    if (tab?.id !== undefined) {
+      await extensionMessaging.sendMessage(
+        'focusDashboardSearchInput',
+        undefined,
+        tab.id,
+      );
+
+      if (!tab.active || !(await browser.windows.get(tab.windowId)).focused) {
+        const mainTabGroup = await getMainTabGroup();
+        await switchTab({
+          tabId: tab.id,
+          mainTabGroupId: mainTabGroup?.id,
+          mainWindowId: mainTabGroup?.windowId,
+        });
+      }
+
+      return;
+    }
   }
 
-  const window = await browser.windows.get(tab.windowId);
-  await extensionMessaging.sendMessage(
-    'focusDashboardSearchInput',
-    undefined,
-    tab.id,
-  );
-  if (tab.active && window.focused) {
-    // TODO: not necessarily needed for now
-    // was originally intented to trigger a flash effect when the dashboard is already active
-  } else {
-    // Dashboard already open, switch to it
-    const mainTabGroup = await getMainTabGroup();
-    await switchTab({
-      tabId: tab.id,
-      mainTabGroupId: mainTabGroup?.id,
-      mainWindowId: mainTabGroup?.windowId,
-    });
-  }
+  await browser.tabs.create({ url: DASHBOARD_URL });
 }
 
 const WATERMARK = '\u200B'; // Zero-width space

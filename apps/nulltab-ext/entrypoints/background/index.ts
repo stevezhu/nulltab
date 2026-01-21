@@ -13,7 +13,7 @@ export default defineBackground(() => {
   browser.commands.onCommand.addListener((command) => {
     switch (command) {
       case 'open_dashboard':
-        void openDashboard();
+        void openDashboard('current-window');
         break;
     }
   });

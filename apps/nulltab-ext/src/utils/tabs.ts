@@ -151,6 +151,7 @@ export async function switchTab({
   if (
     mainWindowId !== undefined &&
     mainTabGroupId !== undefined &&
+    targetTab.windowId === mainWindowId &&
     (targetTab.groupId === mainTabGroupId ||
       (await browser.tabs
         .query({
