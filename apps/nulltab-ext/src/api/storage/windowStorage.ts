@@ -51,6 +51,9 @@ export interface WindowStorage {
   removeManagedWindow(windowId: number): Promise<void>;
 }
 
+/**
+ * @deprecated Not currently used
+ */
 export class LocalStorageWindowStorage implements WindowStorage {
   async saveClosedWindow(
     window: Omit<ClosedWindow, 'id'>,

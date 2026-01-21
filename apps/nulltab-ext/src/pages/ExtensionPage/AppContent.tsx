@@ -1,6 +1,7 @@
 import {
   useMutation,
   useQueryClient,
+  useSuspenseQueries,
   useSuspenseQuery,
 } from '@tanstack/react-query';
 import { createProxyService } from '@webext-core/proxy-service';
@@ -18,15 +19,22 @@ import { type Browser, browser } from 'wxt/browser';
 
 import { TABS_SERVICE_KEY } from '#api/proxyService/proxyServiceKeys.js';
 import { mainTabGroupQueryOptions } from '#api/queryOptions/mainTabGroup.js';
-import { tabsQueryOptions } from '#api/queryOptions/tabs.js';
+import {
+  sortedTabsQueryOptions,
+  tabsKeys,
+  tabsQueryOptions,
+} from '#api/queryOptions/tabs.js';
 import {
   tabAssignmentsQueryOptions,
   topicsKeys,
   topicsQueryOptions,
 } from '#api/queryOptions/topics.js';
-import { windowsQueryOptions } from '#api/queryOptions/windows.js';
+import {
+  currentWindowQueryOptions,
+  windowsKeys,
+  windowsQueryOptions,
+} from '#api/queryOptions/windows.js';
 import { topicStorage } from '#api/storage/topicStorage.js';
-import { type TopBarFilterMode } from '#components/TopBar.js';
 import { TopicFilterValue } from '#components/TopicsBar.js';
 import {
   WindowCard,
@@ -34,8 +42,8 @@ import {
   WindowCardTabs,
 } from '#components/WindowCard.js';
 import { WindowCardList } from '#components/WindowCardList.js';
-import { TabTopicAssignments, WindowData } from '#models/index.js';
-import { convertTabToTabData, sortTabs } from '#utils/tabs.js';
+import { TabTopicAssignments } from '#models/index.js';
+import { convertTabToTabData } from '#utils/tabs.js';
 
 function createSearchFilter(searchQuery: string) {
   const lowerQuery = searchQuery.toLowerCase();
@@ -68,24 +76,65 @@ function createTopicFilter({
 
 const tabsService = createProxyService(TABS_SERVICE_KEY);
 
-export function AppContent({
-  filterMode,
-  searchValue,
-  selectedTopic,
-  onSelectTopic,
-}: {
-  filterMode: TopBarFilterMode;
+export type UnmanagedWindowsProps = {
+  searchValue: string;
+};
+
+export function UnmanagedWindows({ searchValue }: UnmanagedWindowsProps) {
+  const queryClient = useQueryClient();
+
+  const { data: currentWindow } = useSuspenseQuery(currentWindowQueryOptions);
+  const { data: windows } = useSuspenseQuery(windowsQueryOptions);
+  const unmanagedTabs = useSuspenseQueries({
+    queries: [tabsQueryOptions, mainTabGroupQueryOptions],
+    combine: ([tabsQuery, mainTabGroupQuery]) => {
+      const mainTabGroup = mainTabGroupQuery.data;
+      const unmanagedTabs = tabsQuery.data.filter(
+        (tab) => tab.id && mainTabGroup?.windowId !== tab.windowId,
+      );
+      return unmanagedTabs;
+    },
+  });
+  const filteredTabDataList = useMemo(() => {
+    const searchFilter = createSearchFilter(searchValue);
+    return unmanagedTabs.filter(searchFilter).map(convertTabToTabData);
+  }, [unmanagedTabs, searchValue]);
+
+  return (
+    <WindowCardList
+      windows={windows}
+      tabs={filteredTabDataList}
+      currentWindowId={currentWindow.id}
+      onManageWindow={async ({ windowId }: { windowId: number }) => {
+        await tabsService.manageWindow({ windowId });
+
+        // Update local state
+        // TODO: use mutation, invalidate queries instead of refetching
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: windowsKeys.root }),
+          queryClient.invalidateQueries({ queryKey: tabsKeys.root }),
+        ]);
+      }}
+      onTabClick={({ tabId }: { tabId: number }) => {
+        void tabsService.switchTab({ tabId });
+      }}
+      emptyMessage="No tabs found"
+    />
+  );
+}
+
+export type AllTabsProps = {
   searchValue: string;
   selectedTopic: TopicFilterValue;
   onSelectTopic: (topic: TopicFilterValue) => void;
-}) {
-  const queryClient = useQueryClient();
-  const tabsQuery = useSuspenseQuery(tabsQueryOptions);
-  const windowsQuery = useSuspenseQuery(windowsQueryOptions);
-  const { managedWindows, unmanagedWindows } = windowsQuery.data;
+};
 
-  const { data: topics } = useSuspenseQuery(topicsQueryOptions);
-  const { data: tabAssignments } = useSuspenseQuery(tabAssignmentsQueryOptions);
+export function AllTabs({
+  searchValue,
+  selectedTopic,
+  onSelectTopic,
+}: AllTabsProps) {
+  const queryClient = useQueryClient();
 
   const assignTabToTopic = useMutation({
     mutationFn: async ({
@@ -108,76 +157,22 @@ export function AppContent({
     },
   });
 
+  const { data: topics } = useSuspenseQuery(topicsQueryOptions);
+  const { data: tabAssignments } = useSuspenseQuery(tabAssignmentsQueryOptions);
+
+  const { data: currentWindow } = useSuspenseQuery(currentWindowQueryOptions);
+  const { data: mainTabGroup } = useSuspenseQuery(mainTabGroupQueryOptions);
+
+  const { data: sortedTabs } = useSuspenseQuery(sortedTabsQueryOptions);
   const filteredTabs = useMemo(() => {
     const searchFilter = createSearchFilter(searchValue);
     const topicFilter = createTopicFilter({ selectedTopic, tabAssignments });
-    return tabsQuery.data.filter((tab) =>
+    return sortedTabs.filter((tab) =>
       [searchFilter, topicFilter].every((filter) => filter(tab)),
     );
-  }, [tabsQuery.data, searchValue, selectedTopic, tabAssignments]);
+  }, [sortedTabs, searchValue, selectedTopic, tabAssignments]);
 
-  const currentWindowQuery = useSuspenseQuery({
-    queryKey: ['currentWindow'],
-    queryFn: () => browser.windows.getCurrent(),
-  });
-  const currentWindow = currentWindowQuery.data;
-
-  const mainTabGroupQuery = useSuspenseQuery(mainTabGroupQueryOptions);
-  const mainTabGroup = mainTabGroupQuery.data;
-
-  const openWindows = useMemo(() => {
-    const windows: WindowData[] = [];
-    if (filterMode === 'unmanaged') {
-      for (const window of unmanagedWindows) {
-        if (!window.id) continue;
-        windows.push({ id: window.id });
-      }
-    } else {
-      for (const window of managedWindows) {
-        if (!window.id) continue;
-        windows.push({ id: window.id });
-      }
-    }
-    return windows;
-  }, [filterMode, unmanagedWindows, managedWindows]);
-
-  const { managedTabs, unmanagedTabs } = useMemo(() => {
-    const unmanagedTabs: Browser.tabs.Tab[] = [];
-    const managedTabs: Browser.tabs.Tab[] = [];
-    for (const tab of filteredTabs) {
-      if (!tab.id) continue;
-      (mainTabGroup?.windowId === tab.windowId
-        ? managedTabs
-        : unmanagedTabs
-      ).push(tab);
-    }
-    sortTabs(managedTabs);
-    return { managedTabs, unmanagedTabs };
-  }, [filteredTabs, mainTabGroup]);
-
-  if (filterMode === 'unmanaged') {
-    return (
-      <WindowCardList
-        windows={openWindows}
-        tabs={unmanagedTabs
-          .filter((tab) => tab.id !== undefined)
-          .map(convertTabToTabData)}
-        currentWindowId={currentWindow.id}
-        onManageWindow={async ({ windowId }: { windowId: number }) => {
-          await tabsService.manageWindow({ windowId });
-
-          // Update local state
-          // TODO: use mutation, invalidate queries instead of refetching
-          await Promise.all([windowsQuery.refetch(), tabsQuery.refetch()]);
-        }}
-        onTabClick={({ tabId }: { tabId: number }) => {
-          void tabsService.switchTab({ tabId });
-        }}
-        emptyMessage="No tabs found"
-      />
-    );
-  }
-  if (managedTabs.length === 0) {
+  if (filteredTabs.length === 0) {
     // Determine the empty state context
     const isSearching = searchValue.length > 0;
     const isFilteringByTopic =
@@ -263,14 +258,14 @@ export function AppContent({
   return (
     <WindowCard>
       <WindowCardTabs>
-        {managedTabs.map((tab) => {
+        {filteredTabs.map((tab) => {
           return (
             <WindowCardTab
               key={tab.id}
               title={tab.title}
               url={tab.url}
               favIconUrl={tab.favIconUrl}
-              active={'active' in tab ? tab.active : undefined}
+              active={tab.active && tab.windowId === currentWindow.id}
               lastAccessed={tab.lastAccessed}
               discarded={tab.discarded}
               topics={topics}

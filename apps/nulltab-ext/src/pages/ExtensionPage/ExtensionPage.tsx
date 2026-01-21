@@ -15,7 +15,7 @@ import { useTabsListeners } from '#hooks/useTabsListeners.js';
 import { useWindowsListeners } from '#hooks/useWindowsListeners.js';
 import { openSidePanel } from '#utils/management.js';
 
-import { AppContent } from './AppContent';
+import { AllTabs, UnmanagedWindows } from './AppContent';
 import { AppTopicsBar } from './AppTopicsBar';
 
 export function ExtensionPage({ isPopup }: { isPopup?: boolean }) {
@@ -48,12 +48,15 @@ export function ExtensionPage({ isPopup }: { isPopup?: boolean }) {
 
         {/* Content Area */}
         <div className="order-3 flex-1 overflow-y-auto p-4">
-          <AppContent
-            filterMode={filterMode}
-            searchValue={deferredSearchValue}
-            selectedTopic={selectedTopic}
-            onSelectTopic={setSelectedTopic}
-          />
+          {filterMode === 'unmanaged' ? (
+            <UnmanagedWindows searchValue={deferredSearchValue} />
+          ) : (
+            <AllTabs
+              searchValue={deferredSearchValue}
+              selectedTopic={selectedTopic}
+              onSelectTopic={setSelectedTopic}
+            />
+          )}
         </div>
 
         {/* Topic Tabs - only show in managed view */}
