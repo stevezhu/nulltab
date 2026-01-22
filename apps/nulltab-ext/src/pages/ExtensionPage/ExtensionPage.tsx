@@ -56,7 +56,7 @@ export function ExtensionPage({ isPopup }: { isPopup?: boolean }) {
       The final element will be on top. */}
 
         {/* Content Area */}
-        <div className="order-3 flex-1 overflow-y-auto p-4">
+        <div className="order-3 flex-1">
           {filterMode === 'ungrouped' ? (
             <UngroupedTabWindowList searchValue={deferredSearchValue} />
           ) : (

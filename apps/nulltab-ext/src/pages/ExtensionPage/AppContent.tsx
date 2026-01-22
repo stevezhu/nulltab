@@ -103,25 +103,27 @@ export function UngroupedTabWindowList({
   }, [ungroupedTabs, searchValue]);
 
   return (
-    <WindowCardList
-      windows={windows}
-      tabs={filteredTabDataList}
-      currentWindowId={currentWindow.id}
-      onManageWindow={async ({ windowId }: { windowId: number }) => {
-        await tabsService.manageWindow({ windowId });
+    <div className="overflow-y-auto p-4">
+      <WindowCardList
+        windows={windows}
+        tabs={filteredTabDataList}
+        currentWindowId={currentWindow.id}
+        onManageWindow={async ({ windowId }: { windowId: number }) => {
+          await tabsService.manageWindow({ windowId });
 
-        // Update local state
-        // TODO: use mutation, invalidate queries instead of refetching
-        await Promise.all([
-          queryClient.invalidateQueries({ queryKey: windowsKeys.root }),
-          queryClient.invalidateQueries({ queryKey: tabsKeys.root }),
-        ]);
-      }}
-      onTabClick={({ tabId }: { tabId: number }) => {
-        void tabsService.switchTab({ tabId });
-      }}
-      emptyMessage="No tabs found"
-    />
+          // Update local state
+          // TODO: use mutation, invalidate queries instead of refetching
+          await Promise.all([
+            queryClient.invalidateQueries({ queryKey: windowsKeys.root }),
+            queryClient.invalidateQueries({ queryKey: tabsKeys.root }),
+          ]);
+        }}
+        onTabClick={({ tabId }: { tabId: number }) => {
+          void tabsService.switchTab({ tabId });
+        }}
+        emptyMessage="No tabs found"
+      />
+    </div>
   );
 }
 
@@ -174,123 +176,140 @@ export function AllTabs({
     );
   }, [sortedTabs, searchValue, selectedTopic, tabAssignments]);
 
-  if (filteredTabs.length === 0) {
-    // Determine the empty state context
-    const isSearching = searchValue.length > 0;
-    const isFilteringByTopic =
-      selectedTopic !== 'all' && selectedTopic !== 'uncategorized';
-    const isFilteringUncategorized = selectedTopic === 'uncategorized';
-    const currentTopicName = isFilteringByTopic
-      ? topics.find((t) => t.id === selectedTopic)?.name
-      : null;
+  return (
+    <div className="overflow-y-auto p-4">
+      {filteredTabs.length === 0 ? (
+        <AllTabsEmpty
+          searchValue={searchValue}
+          selectedTopic={selectedTopic}
+          currentTopicName={topics.find((t) => t.id === selectedTopic)?.name}
+          onSelectTopic={onSelectTopic}
+        />
+      ) : (
+        <WindowCard>
+          <WindowCardTabs>
+            {filteredTabs.map((tab) => {
+              return (
+                <WindowCardTab
+                  key={tab.id}
+                  title={tab.title}
+                  url={tab.url}
+                  favIconUrl={tab.favIconUrl}
+                  active={tab.active && tab.windowId === currentWindow.id}
+                  lastAccessed={tab.lastAccessed}
+                  discarded={tab.discarded}
+                  topics={topics}
+                  currentTopicId={tab.url ? tabAssignments[tab.url] : undefined}
+                  onTopicChange={(topicId) => {
+                    if (!tab.url) return;
+                    assignTabToTopic.mutate({ tabUrl: tab.url, topicId });
+                  }}
+                  onClick={() => {
+                    if (!tab.id || !mainTabGroup?.id || !mainTabGroup.windowId)
+                      return;
+                    void tabsService.switchTab({
+                      mainTabGroupId: mainTabGroup.id,
+                      mainWindowId: mainTabGroup.windowId,
+                      tabId: tab.id,
+                    });
+                  }}
+                  onClose={() => {
+                    if (!tab.id) return;
+                    void browser.tabs.remove(tab.id);
+                  }}
+                />
+              );
+            })}
+          </WindowCardTabs>
+        </WindowCard>
+      )}
+    </div>
+  );
+}
 
-    if (isSearching) {
-      return (
-        <Empty>
-          <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <Search />
-            </EmptyMedia>
-            <EmptyTitle>No matching tabs</EmptyTitle>
-            <EmptyDescription>
-              No tabs match &quot;{searchValue}&quot;. Try a different search
-              term.
-            </EmptyDescription>
-          </EmptyHeader>
-        </Empty>
-      );
-    }
+function AllTabsEmpty({
+  searchValue,
+  selectedTopic,
+  currentTopicName,
+  onSelectTopic,
+}: {
+  searchValue: string;
+  selectedTopic: TopicFilterValue;
+  currentTopicName?: string;
+  onSelectTopic: (topic: TopicFilterValue) => void;
+}) {
+  const isSearching = searchValue.length > 0;
+  const isFilteringByTopic =
+    selectedTopic !== 'all' && selectedTopic !== 'uncategorized';
+  const isFilteringUncategorized = selectedTopic === 'uncategorized';
+  if (isSearching) {
+    return (
+      <Empty>
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <Search />
+          </EmptyMedia>
+          <EmptyTitle>No matching tabs</EmptyTitle>
+          <EmptyDescription>
+            No tabs match &quot;{searchValue}&quot;. Try a different search
+            term.
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
+    );
+  }
 
-    if (isFilteringByTopic) {
-      return (
-        <Empty>
-          <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <Tag />
-            </EmptyMedia>
-            <EmptyTitle>No tabs in &quot;{currentTopicName}&quot;</EmptyTitle>
-            <EmptyDescription>
-              Assign tabs to this topic using the dropdown menu on any tab.
-            </EmptyDescription>
-          </EmptyHeader>
-          <Button
-            variant="outline"
-            onClick={() => {
-              onSelectTopic('all');
-            }}
-          >
-            View all tabs
-          </Button>
-        </Empty>
-      );
-    }
+  if (isFilteringByTopic && currentTopicName !== undefined) {
+    return (
+      <Empty>
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <Tag />
+          </EmptyMedia>
+          <EmptyTitle>No tabs in &quot;{currentTopicName}&quot;</EmptyTitle>
+          <EmptyDescription>
+            Assign tabs to this topic using the dropdown menu on any tab.
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button
+          variant="outline"
+          onClick={() => {
+            onSelectTopic('all');
+          }}
+        >
+          View all tabs
+        </Button>
+      </Empty>
+    );
+  }
 
-    if (isFilteringUncategorized) {
-      return (
-        <Empty>
-          <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <Inbox />
-            </EmptyMedia>
-            <EmptyTitle>All tabs are categorized</EmptyTitle>
-            <EmptyDescription>
-              Great job! All your tabs have been assigned to topics.
-            </EmptyDescription>
-          </EmptyHeader>
-        </Empty>
-      );
-    }
-
+  if (isFilteringUncategorized) {
     return (
       <Empty>
         <EmptyHeader>
           <EmptyMedia variant="icon">
             <Inbox />
           </EmptyMedia>
-          <EmptyTitle>No tabs</EmptyTitle>
+          <EmptyTitle>All tabs are categorized</EmptyTitle>
           <EmptyDescription>
-            No tabs are available right now. Open a tab or adjust your filters.
+            Great job! All your tabs have been assigned to topics.
           </EmptyDescription>
         </EmptyHeader>
       </Empty>
     );
   }
+
   return (
-    <WindowCard>
-      <WindowCardTabs>
-        {filteredTabs.map((tab) => {
-          return (
-            <WindowCardTab
-              key={tab.id}
-              title={tab.title}
-              url={tab.url}
-              favIconUrl={tab.favIconUrl}
-              active={tab.active && tab.windowId === currentWindow.id}
-              lastAccessed={tab.lastAccessed}
-              discarded={tab.discarded}
-              topics={topics}
-              currentTopicId={tab.url ? tabAssignments[tab.url] : undefined}
-              onTopicChange={(topicId) => {
-                if (!tab.url) return;
-                assignTabToTopic.mutate({ tabUrl: tab.url, topicId });
-              }}
-              onClick={() => {
-                if (!tab.id || !mainTabGroup?.id || !mainTabGroup.windowId)
-                  return;
-                void tabsService.switchTab({
-                  mainTabGroupId: mainTabGroup.id,
-                  mainWindowId: mainTabGroup.windowId,
-                  tabId: tab.id,
-                });
-              }}
-              onClose={() => {
-                if (!tab.id) return;
-                void browser.tabs.remove(tab.id);
-              }}
-            />
-          );
-        })}
-      </WindowCardTabs>
-    </WindowCard>
+    <Empty>
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <Inbox />
+        </EmptyMedia>
+        <EmptyTitle>No tabs</EmptyTitle>
+        <EmptyDescription>
+          No tabs are available right now. Open a tab or adjust your filters.
+        </EmptyDescription>
+      </EmptyHeader>
+    </Empty>
   );
 }
