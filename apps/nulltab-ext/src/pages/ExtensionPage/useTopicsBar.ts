@@ -16,20 +16,19 @@ import { topicStorage } from '#api/storage/topicStorage.js';
 import {
   type TopicCounts,
   TopicFilterValue,
-  TopicsBar,
+  TopicsBarProps,
 } from '#components/TopicsBar.js';
 
-export function AppTopicsBar({
+export function useTopicsBar({
   selectedTopic,
   setSelectedTopic,
 }: {
   selectedTopic: TopicFilterValue;
   setSelectedTopic: Dispatch<SetStateAction<TopicFilterValue>>;
-}) {
+}): TopicsBarProps {
   const queryClient = useQueryClient();
 
-  const topicsQuery = useSuspenseQuery(topicsQueryOptions);
-  const topics = topicsQuery.data;
+  const { data: topics } = useSuspenseQuery(topicsQueryOptions);
 
   // Query data needed for topic counts
   const tabsQuery = useSuspenseQuery(tabsQueryOptions);
@@ -42,6 +41,7 @@ export function AppTopicsBar({
     const tabAssignments = tabAssignmentsQuery.data;
 
     // Filter to grouped tabs only
+    // TODO: this shouldn't be filtered here
     const groupedTabs = tabsQuery.data.filter(
       (tab) => tab.id && mainTabGroup?.windowId === tab.windowId,
     );
@@ -110,24 +110,22 @@ export function AppTopicsBar({
     },
   });
 
-  return (
-    <TopicsBar
-      topics={topics}
-      counts={topicCounts}
-      selectedTopic={selectedTopic}
-      onSelectTopic={setSelectedTopic}
-      onCreateTopic={(name, color) => {
-        createTopic.mutate({ name, color });
-      }}
-      onDeleteTopic={(id) => {
-        deleteTopic.mutate(id);
-      }}
-      onUpdateTopic={(topic) => {
-        updateTopic.mutate(topic);
-      }}
-      onReorderTopics={(topicIds) => {
-        reorderTopics.mutate(topicIds);
-      }}
-    />
-  );
+  return {
+    topics,
+    counts: topicCounts,
+    selectedTopic,
+    onSelectTopic: setSelectedTopic,
+    onCreateTopic: (name, color) => {
+      createTopic.mutate({ name, color });
+    },
+    onDeleteTopic: (id) => {
+      deleteTopic.mutate(id);
+    },
+    onUpdateTopic: (topic) => {
+      updateTopic.mutate(topic);
+    },
+    onReorderTopics: (topicIds) => {
+      reorderTopics.mutate(topicIds);
+    },
+  };
 }

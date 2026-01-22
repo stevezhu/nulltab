@@ -1,4 +1,5 @@
 import { TanStackDevtools } from '@tanstack/react-devtools';
+import { QueryClient } from '@tanstack/react-query';
 import { ReactQueryDevtoolsPanel } from '@tanstack/react-query-devtools';
 import {
   createRootRouteWithContext,
@@ -34,7 +35,9 @@ import { RouterBreadcrumbLink } from '#components/RouterBreadcrumbLink.js';
 import { RouterSidebarMenuButton } from '#components/RouterSidebarMenuButton.js';
 import { useBreadcrumbs } from '#hooks/useBreadcrumbs.js';
 
-export const Route = createRootRouteWithContext()({
+export const Route = createRootRouteWithContext<{
+  queryClient: QueryClient;
+}>()({
   component: RootLayout,
 });
 
