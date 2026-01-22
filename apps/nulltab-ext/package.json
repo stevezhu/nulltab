@@ -16,7 +16,7 @@
     "postinstall": "wxt prepare",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "storybook": "storybook dev",
+    "storybook": "storybook dev -p 6006",
     "test": "tsc --noEmit",
     "watch": "vitest",
     "zip": "wxt zip",

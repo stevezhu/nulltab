@@ -1,3 +1,4 @@
+import { Meta } from '@storybook/react-vite';
 import { Button } from '@workspace/shadcn/components/button';
 import { ReactNode } from 'react';
 import { fn } from 'storybook/test';
@@ -12,51 +13,52 @@ import {
   WindowCardTabs,
 } from './WindowCard';
 
+function WindowCardStory({
+  title,
+  tabCount,
+  tabs,
+  actions,
+  active,
+  disabled,
+  onTabClick,
+}: {
+  title?: string;
+  tabCount?: number;
+  tabs: Array<
+    Pick<WindowCardTabProps, 'title' | 'url' | 'favIconUrl' | 'active'> & {
+      id: number;
+    }
+  >;
+  actions?: ReactNode;
+  active?: boolean;
+  disabled?: boolean;
+  onTabClick?: (tabId: number) => void;
+}) {
+  return (
+    <WindowCard active={active} disabled={disabled}>
+      {title && actions && (
+        <WindowCardHeader title={title} tabCount={tabCount}>
+          {actions}
+        </WindowCardHeader>
+      )}
+      <WindowCardTabs>
+        {tabs.map((tab) => {
+          return (
+            <WindowCardTab
+              key={tab.id}
+              active={tab.active}
+              onClick={() => onTabClick?.(tab.id)}
+              {...tab}
+            />
+          );
+        })}
+      </WindowCardTabs>
+    </WindowCard>
+  );
+}
+
 const meta = preview.meta({
-  component: function WindowCardStory({
-    title,
-    tabCount,
-    tabs,
-    actions,
-    active,
-    disabled,
-    onTabClick,
-  }: {
-    title?: string;
-    tabCount?: number;
-    tabs: Array<
-      Pick<WindowCardTabProps, 'title' | 'url' | 'favIconUrl' | 'active'> & {
-        id: number;
-      }
-    >;
-    actions?: ReactNode;
-    active?: boolean;
-    disabled?: boolean;
-    onTabClick?: (tabId: number) => void;
-  }) {
-    return (
-      <WindowCard active={active} disabled={disabled}>
-        {title && actions && (
-          <WindowCardHeader title={title} tabCount={tabCount}>
-            {actions}
-          </WindowCardHeader>
-        )}
-        <WindowCardTabs>
-          {tabs.map((tab) => {
-            return (
-              <WindowCardTab
-                key={tab.id}
-                active={active}
-                disabled={disabled}
-                onClick={() => onTabClick?.(tab.id)}
-                {...tab}
-              />
-            );
-          })}
-        </WindowCardTabs>
-      </WindowCard>
-    );
-  },
+  component: WindowCardStory,
   subcomponents: {
     WindowCard,
     WindowCardHeader,
@@ -72,6 +74,8 @@ const meta = preview.meta({
     onTabClick: { control: false },
   },
 });
+
+type MetaArgs = Meta<typeof WindowCardStory>['args'];
 
 export const Default = meta.story({
   args: {
@@ -101,34 +105,32 @@ export const Default = meta.story({
       },
     ],
     actions: <Button>Open</Button>,
-    isHighlighted: false,
-    isClosed: false,
-  },
+  } satisfies MetaArgs,
 });
 
 export const Disabled = Default.extend({
   args: {
     disabled: true,
-  },
+  } satisfies MetaArgs,
 });
 
 export const Active = Default.extend({
   args: {
     active: true,
-  },
+  } satisfies MetaArgs,
 });
 
 export const NoTabCount = Default.extend({
   args: {
     tabCount: undefined,
-  },
+  } satisfies MetaArgs,
 });
 
 export const NoHeader = Default.extend({
   args: {
     title: undefined,
     actions: undefined,
-  },
+  } satisfies MetaArgs,
 });
 
 export const LongText = Default.extend({
@@ -143,5 +145,5 @@ export const LongText = Default.extend({
         active: true,
       },
     ],
-  },
+  } satisfies MetaArgs,
 });

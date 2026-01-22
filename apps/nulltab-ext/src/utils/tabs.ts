@@ -175,7 +175,7 @@ export async function switchTab({
  * @param u
  * @returns
  */
-export function getFaviconUrl(u: string) {
+export function getFavIconUrl(u: string) {
   // @ts-expect-error wxt public paths aren't typed correctly to include favicon path
   const url = new URL(browser.runtime.getURL('/_favicon/'));
   url.searchParams.set('pageUrl', u);
