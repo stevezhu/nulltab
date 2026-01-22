@@ -4,6 +4,7 @@ import {
   useSuspenseQueries,
   useSuspenseQuery,
 } from '@tanstack/react-query';
+import { useElementScrollRestoration } from '@tanstack/react-router';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { createProxyService } from '@webext-core/proxy-service';
 import { Button } from '@workspace/shadcn/components/button';
@@ -182,18 +183,26 @@ export function AllTabs({
     );
   }, [sortedTabs, searchValue, selectedTopic, tabAssignments]);
 
-  const parentRef = useRef<HTMLDivElement>(null);
-
-  // The virtualizer
-  const rowVirtualizer = useVirtualizer({
-    count: filteredTabs.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 61,
+  // Virtualizer
+  const scrollRestorationId = 'myVirtualizedContent';
+  const scrollEntry = useElementScrollRestoration({
+    id: scrollRestorationId,
   });
-  const items = rowVirtualizer.getVirtualItems();
+  const virtualizerScrollElRef = useRef<HTMLDivElement>(null);
+  const virtualizer = useVirtualizer({
+    count: filteredTabs.length,
+    getScrollElement: () => virtualizerScrollElRef.current,
+    estimateSize: () => 61,
+    initialOffset: scrollEntry?.scrollY,
+  });
+  const virtualItems = virtualizer.getVirtualItems();
 
   return (
-    <div className={cn('overflow-y-auto p-4', className)} ref={parentRef}>
+    <div
+      className={cn('overflow-y-auto p-4', className)}
+      ref={virtualizerScrollElRef}
+      data-scroll-restoration-id={scrollRestorationId}
+    >
       {filteredTabs.length === 0 ? (
         <AllTabsEmpty
           searchValue={searchValue}
@@ -205,7 +214,7 @@ export function AllTabs({
         <WindowCard>
           <WindowCardTabs
             className="relative w-full"
-            style={{ height: rowVirtualizer.getTotalSize() }}
+            style={{ height: virtualizer.getTotalSize() }}
           >
             <div
               style={{
@@ -213,22 +222,21 @@ export function AllTabs({
                 top: 0,
                 left: 0,
                 width: '100%',
-                transform: `translateY(${items[0]?.start ?? 0}px)`,
+                transform: `translateY(${virtualItems[0]?.start ?? 0}px)`,
               }}
             >
-              {items.map((virtualItem) => {
+              {virtualItems.map((virtualItem) => {
                 const tab = filteredTabs[virtualItem.index];
                 if (!tab) return null;
                 return (
                   <div
                     key={virtualItem.key}
                     data-index={virtualItem.index}
-                    ref={rowVirtualizer.measureElement}
+                    ref={virtualizer.measureElement}
                   >
                     <WindowCardTab
                       title={tab.title}
                       url={tab.url}
-                      favIconUrl={tab.favIconUrl}
                       active={tab.active && tab.windowId === currentWindow.id}
                       lastAccessed={tab.lastAccessed}
                       discarded={tab.discarded}
