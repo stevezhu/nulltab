@@ -60,6 +60,7 @@ packageExtensions:
 patchedDependencies:
   '@electron-toolkit/typed-ipc': patches/@electron-toolkit__typed-ipc.patch
   electron-vite: patches/electron-vite.patch
+  wxt: patches/wxt.patch
 
 saveWorkspaceProtocol: rolling
 

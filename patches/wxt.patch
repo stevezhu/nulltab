@@ -1,0 +1,12 @@
+diff --git a/dist/virtual/mock-browser.mjs b/dist/virtual/mock-browser.mjs
+index 7a1dbb452ef6f0cc6408dc57d324acc133faf7cb..92623eac14ca1ba71d24f803d6eb66f51c63d9ce 100644
+--- a/dist/virtual/mock-browser.mjs
++++ b/dist/virtual/mock-browser.mjs
+@@ -1,5 +1,5 @@
+-import { fakeBrowser } from 'wxt/testing';
+-export { fakeBrowser as default } from 'wxt/testing';
++import { fakeBrowser } from 'wxt/testing/fake-browser';
++export { fakeBrowser as default } from 'wxt/testing/fake-browser';
+ 
+ const browser = fakeBrowser;
+ 

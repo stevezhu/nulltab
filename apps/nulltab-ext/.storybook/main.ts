@@ -1,5 +1,3 @@
-import { join } from 'node:path';
-
 import { defineMain } from '@storybook/react-vite/node';
 
 export default defineMain({
@@ -15,10 +13,7 @@ export default defineMain({
     name: '@storybook/react-vite',
     options: {
       builder: {
-        viteConfigPath: join(
-          import.meta.dirname,
-          '../vite.storybook.config.ts',
-        ),
+        viteConfigPath: '.storybook/vite.config.ts',
       },
     },
   },
