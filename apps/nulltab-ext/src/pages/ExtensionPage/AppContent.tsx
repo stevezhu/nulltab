@@ -4,6 +4,7 @@ import {
   useSuspenseQueries,
   useSuspenseQuery,
 } from '@tanstack/react-query';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { createProxyService } from '@webext-core/proxy-service';
 import { Button } from '@workspace/shadcn/components/button';
 import {
@@ -13,8 +14,9 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from '@workspace/shadcn/components/empty';
+import { cn } from '@workspace/shadcn/lib/utils';
 import { Inbox, Search, Tag } from 'lucide-react';
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { type Browser, browser } from 'wxt/browser';
 
 import { TABS_SERVICE_KEY } from '#api/proxyService/proxyServiceKeys.js';
@@ -77,10 +79,12 @@ function createTopicFilter({
 const tabsService = createProxyService(TABS_SERVICE_KEY);
 
 export type UngroupedTabsWindowListProps = {
+  className?: string;
   searchValue: string;
 };
 
 export function UngroupedTabWindowList({
+  className,
   searchValue,
 }: UngroupedTabsWindowListProps) {
   const queryClient = useQueryClient();
@@ -103,7 +107,7 @@ export function UngroupedTabWindowList({
   }, [ungroupedTabs, searchValue]);
 
   return (
-    <div className="overflow-y-auto p-4">
+    <div className={cn('overflow-y-auto p-4', className)}>
       <WindowCardList
         windows={windows}
         tabs={filteredTabDataList}
@@ -128,12 +132,14 @@ export function UngroupedTabWindowList({
 }
 
 export type AllTabsProps = {
+  className?: string;
   searchValue: string;
   selectedTopic: TopicFilterValue;
   onSelectTopic: (topic: TopicFilterValue) => void;
 };
 
 export function AllTabs({
+  className,
   searchValue,
   selectedTopic,
   onSelectTopic,
@@ -176,8 +182,18 @@ export function AllTabs({
     );
   }, [sortedTabs, searchValue, selectedTopic, tabAssignments]);
 
+  const parentRef = useRef<HTMLDivElement>(null);
+
+  // The virtualizer
+  const rowVirtualizer = useVirtualizer({
+    count: filteredTabs.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 61,
+  });
+  const items = rowVirtualizer.getVirtualItems();
+
   return (
-    <div className="overflow-y-auto p-4">
+    <div className={cn('overflow-y-auto p-4', className)} ref={parentRef}>
       {filteredTabs.length === 0 ? (
         <AllTabsEmpty
           searchValue={searchValue}
@@ -187,39 +203,65 @@ export function AllTabs({
         />
       ) : (
         <WindowCard>
-          <WindowCardTabs>
-            {filteredTabs.map((tab) => {
-              return (
-                <WindowCardTab
-                  key={tab.id}
-                  title={tab.title}
-                  url={tab.url}
-                  favIconUrl={tab.favIconUrl}
-                  active={tab.active && tab.windowId === currentWindow.id}
-                  lastAccessed={tab.lastAccessed}
-                  discarded={tab.discarded}
-                  topics={topics}
-                  currentTopicId={tab.url ? tabAssignments[tab.url] : undefined}
-                  onTopicChange={(topicId) => {
-                    if (!tab.url) return;
-                    assignTabToTopic.mutate({ tabUrl: tab.url, topicId });
-                  }}
-                  onClick={() => {
-                    if (!tab.id || !mainTabGroup?.id || !mainTabGroup.windowId)
-                      return;
-                    void tabsService.switchTab({
-                      mainTabGroupId: mainTabGroup.id,
-                      mainWindowId: mainTabGroup.windowId,
-                      tabId: tab.id,
-                    });
-                  }}
-                  onClose={() => {
-                    if (!tab.id) return;
-                    void browser.tabs.remove(tab.id);
-                  }}
-                />
-              );
-            })}
+          <WindowCardTabs
+            className="relative w-full"
+            style={{ height: rowVirtualizer.getTotalSize() }}
+          >
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                transform: `translateY(${items[0]?.start ?? 0}px)`,
+              }}
+            >
+              {items.map((virtualItem) => {
+                const tab = filteredTabs[virtualItem.index];
+                if (!tab) return null;
+                return (
+                  <div
+                    key={virtualItem.key}
+                    data-index={virtualItem.index}
+                    ref={rowVirtualizer.measureElement}
+                  >
+                    <WindowCardTab
+                      title={tab.title}
+                      url={tab.url}
+                      favIconUrl={tab.favIconUrl}
+                      active={tab.active && tab.windowId === currentWindow.id}
+                      lastAccessed={tab.lastAccessed}
+                      discarded={tab.discarded}
+                      topics={topics}
+                      currentTopicId={
+                        tab.url ? tabAssignments[tab.url] : undefined
+                      }
+                      onTopicChange={(topicId) => {
+                        if (!tab.url) return;
+                        assignTabToTopic.mutate({ tabUrl: tab.url, topicId });
+                      }}
+                      onClick={() => {
+                        if (
+                          !tab.id ||
+                          !mainTabGroup?.id ||
+                          !mainTabGroup.windowId
+                        )
+                          return;
+                        void tabsService.switchTab({
+                          mainTabGroupId: mainTabGroup.id,
+                          mainWindowId: mainTabGroup.windowId,
+                          tabId: tab.id,
+                        });
+                      }}
+                      onClose={() => {
+                        if (!tab.id) return;
+                        void browser.tabs.remove(tab.id);
+                      }}
+                    />
+                  </div>
+                );
+              })}
+            </div>
           </WindowCardTabs>
         </WindowCard>
       )}

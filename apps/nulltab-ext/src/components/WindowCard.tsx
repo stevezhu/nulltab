@@ -16,7 +16,7 @@ import {
 } from '@workspace/shadcn/components/tooltip';
 import { cn } from '@workspace/shadcn/lib/utils';
 import { CirclePause, Clock, MoreHorizontal, Tag, X } from 'lucide-react';
-import { type ReactNode, useEffect, useState } from 'react';
+import { HTMLAttributes, type ReactNode, useEffect, useState } from 'react';
 
 import { type Topic } from '#models/index.js';
 
@@ -71,11 +71,20 @@ export function WindowCardHeader({
 }
 
 export type WindowCardTabsProps = {
+  className?: string;
+  style?: HTMLAttributes<HTMLDivElement>['style'];
   children?: ReactNode;
 };
-
-export function WindowCardTabs({ children }: WindowCardTabsProps) {
-  return <div className="flex flex-col">{children}</div>;
+export function WindowCardTabs({
+  className,
+  style,
+  children,
+}: WindowCardTabsProps) {
+  return (
+    <div className={cn('flex flex-col', className)} style={style}>
+      {children}
+    </div>
+  );
 }
 
 export type WindowCardTabProps = {

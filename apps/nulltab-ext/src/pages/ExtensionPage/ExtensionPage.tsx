@@ -56,17 +56,19 @@ export function ExtensionPage({ isPopup }: { isPopup?: boolean }) {
       The final element will be on top. */}
 
         {/* Content Area */}
-        <div className="order-3 flex-1">
-          {filterMode === 'ungrouped' ? (
-            <UngroupedTabWindowList searchValue={deferredSearchValue} />
-          ) : (
-            <AllTabs
-              searchValue={deferredSearchValue}
-              selectedTopic={selectedTopic}
-              onSelectTopic={setSelectedTopic}
-            />
-          )}
-        </div>
+        {filterMode === 'ungrouped' ? (
+          <UngroupedTabWindowList
+            className="order-3 flex-1"
+            searchValue={deferredSearchValue}
+          />
+        ) : (
+          <AllTabs
+            className="order-3 flex-1"
+            searchValue={deferredSearchValue}
+            selectedTopic={selectedTopic}
+            onSelectTopic={setSelectedTopic}
+          />
+        )}
 
         {/* Topic Tabs - only show in all view */}
         {filterMode === 'all' && (
