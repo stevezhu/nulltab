@@ -4,7 +4,6 @@ import {
   useSuspenseQueries,
   useSuspenseQuery,
 } from '@tanstack/react-query';
-import { useElementScrollRestoration } from '@tanstack/react-router';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { createProxyService } from '@webext-core/proxy-service';
 import { Button } from '@workspace/shadcn/components/button';
@@ -17,7 +16,7 @@ import {
 } from '@workspace/shadcn/components/empty';
 import { cn } from '@workspace/shadcn/lib/utils';
 import { Inbox, Search, Tag } from 'lucide-react';
-import { useMemo, useRef } from 'react';
+import { useContext, useMemo, useRef } from 'react';
 import { type Browser, browser } from 'wxt/browser';
 
 import { TABS_SERVICE_KEY } from '#api/proxyService/proxyServiceKeys.js';
@@ -47,6 +46,8 @@ import {
 import { WindowCardList } from '#components/WindowCardList.js';
 import { TabTopicAssignments } from '#models/index.js';
 import { convertTabToTabData } from '#utils/tabs.js';
+
+import { ScrollRestorationContext } from './ScrollRestorationContext';
 
 function createSearchFilter(searchQuery: string) {
   const lowerQuery = searchQuery.toLowerCase();
@@ -184,16 +185,15 @@ export function AllTabs({
   }, [sortedTabs, searchValue, selectedTopic, tabAssignments]);
 
   // Virtualizer
-  const scrollRestorationId = 'myVirtualizedContent';
-  const scrollEntry = useElementScrollRestoration({
-    id: scrollRestorationId,
-  });
+  const { scrollRestorationId, scrollRestorationEntry } = useContext(
+    ScrollRestorationContext,
+  );
   const virtualizerScrollElRef = useRef<HTMLDivElement>(null);
   const virtualizer = useVirtualizer({
     count: filteredTabs.length,
     getScrollElement: () => virtualizerScrollElRef.current,
     estimateSize: () => 61,
-    initialOffset: scrollEntry?.scrollY,
+    initialOffset: scrollRestorationEntry?.scrollY,
   });
   const virtualItems = virtualizer.getVirtualItems();
 

@@ -1,4 +1,7 @@
-import { createFileRoute } from '@tanstack/react-router';
+import {
+  createFileRoute,
+  useElementScrollRestoration,
+} from '@tanstack/react-router';
 
 import { isMacQueryOptions } from '#api/queryOptions/isMac.js';
 import { mainTabGroupQueryOptions } from '#api/queryOptions/mainTabGroup.js';
@@ -13,6 +16,7 @@ import {
 import { currentWindowQueryOptions } from '#api/queryOptions/windows.js';
 import { createBreadcrumbsData } from '#hooks/useBreadcrumbs.js';
 import { ExtensionPage } from '#pages/ExtensionPage/index.js';
+import { ScrollRestorationContext } from '#pages/ExtensionPage/ScrollRestorationContext.js';
 
 export const Route = createFileRoute('/')({
   component: Index,
@@ -31,5 +35,15 @@ export const Route = createFileRoute('/')({
 });
 
 function Index() {
-  return <ExtensionPage />;
+  const scrollRestorationId = 'all-tabs-scroll-restoration';
+  const scrollRestorationEntry = useElementScrollRestoration({
+    id: scrollRestorationId,
+  });
+  return (
+    <ScrollRestorationContext.Provider
+      value={{ scrollRestorationId, scrollRestorationEntry }}
+    >
+      <ExtensionPage />
+    </ScrollRestorationContext.Provider>
+  );
 }
