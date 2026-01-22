@@ -169,3 +169,16 @@ export async function switchTab({
   }
   await reloadAndFocusTab(targetTab);
 }
+
+/**
+ * Uses the chrome extension api to get the favicon url for a website.
+ * @param u
+ * @returns
+ */
+export function getFaviconUrl(u: string) {
+  // @ts-expect-error wxt public paths aren't typed correctly to include favicon path
+  const url = new URL(browser.runtime.getURL('/_favicon/'));
+  url.searchParams.set('pageUrl', u);
+  url.searchParams.set('size', '32');
+  return url.toString();
+}

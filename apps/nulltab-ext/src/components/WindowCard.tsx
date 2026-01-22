@@ -19,6 +19,7 @@ import { CirclePause, Clock, MoreHorizontal, Tag, X } from 'lucide-react';
 import { HTMLAttributes, type ReactNode, useEffect, useState } from 'react';
 
 import { type Topic } from '#models/index.js';
+import { getFaviconUrl } from '#utils/tabs.js';
 
 export type WindowCardProps = {
   active?: boolean;
@@ -90,7 +91,6 @@ export function WindowCardTabs({
 export type WindowCardTabProps = {
   title?: string;
   url?: string;
-  favIconUrl?: string;
   active?: boolean;
   lastAccessed?: number;
   discarded?: boolean;
@@ -110,7 +110,6 @@ export type WindowCardTabProps = {
 export function WindowCardTab({
   title,
   url,
-  favIconUrl,
   active,
   lastAccessed,
   discarded,
@@ -162,16 +161,14 @@ export function WindowCardTab({
           : undefined
       }
     >
-      {favIconUrl && (
-        <img
-          src={favIconUrl}
-          alt=""
-          className={cn('h-4 w-4 shrink-0', discarded && 'grayscale')}
-          onError={(e) => {
-            e.currentTarget.style.display = 'none';
-          }}
-        />
-      )}
+      <img
+        src={getFaviconUrl(url ?? '')}
+        alt="Favicon"
+        className={cn('h-4 w-4 shrink-0', discarded && `grayscale`)}
+        // onError={(e) => {
+        //   e.currentTarget.style.display = 'none';
+        // }}
+      />
       <div className="flex-1">
         <div
           className={cn(

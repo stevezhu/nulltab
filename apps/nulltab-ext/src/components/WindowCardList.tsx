@@ -105,7 +105,6 @@ export function WindowCardList({
                     key={tab.id}
                     title={tab.title}
                     url={tab.url}
-                    favIconUrl={tab.favIconUrl}
                     active={'active' in tab ? tab.active : undefined}
                     lastAccessed={tab.lastAccessed}
                     discarded={tab.discarded}
