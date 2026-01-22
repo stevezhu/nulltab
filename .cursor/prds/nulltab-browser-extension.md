@@ -271,7 +271,7 @@ interface Tab {
   id: string;
   url: string;
   title: string;
-  faviconUrl?: string;
+  favIconUrl?: string;
   categoryId: string;
   importanceScore: number;
   saveCount: number;
