@@ -6,8 +6,8 @@ import viteConfig from './vite.config.js';
 
 // See https://wxt.dev/api/config.html
 export default defineConfig({
-  manifest: {
-    name: 'NullTab',
+  manifest: ({ mode }) => ({
+    name: mode === 'development' ? 'NullTab (Dev)' : 'NullTab',
     description:
       'A new browsing experience that replaces tab chaos with intelligent organization.',
     permissions: [
@@ -34,7 +34,11 @@ export default defineConfig({
         description: 'Open NullTab dashboard',
       },
     },
-  },
+  }),
   imports: false,
+  modules: ['@wxt-dev/auto-icons'],
+  autoIcons: {
+    baseIconPath: 'assets/icon.svg',
+  },
   vite: () => viteConfig,
 });
