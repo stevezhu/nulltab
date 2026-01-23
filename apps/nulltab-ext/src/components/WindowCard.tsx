@@ -1,9 +1,10 @@
+import { Badge } from '@workspace/shadcn/components/badge';
+import { Button } from '@workspace/shadcn/components/button';
+import { ButtonGroup } from '@workspace/shadcn/components/button-group';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
@@ -12,10 +13,17 @@ import {
 import {
   Tooltip,
   TooltipContent,
+  TooltipProvider,
   TooltipTrigger,
 } from '@workspace/shadcn/components/tooltip';
 import { cn } from '@workspace/shadcn/lib/utils';
-import { CirclePause, Clock, MoreHorizontal, Tag, X } from 'lucide-react';
+import {
+  CirclePause,
+  Clock,
+  MoreHorizontalIcon,
+  Tag,
+  XIcon,
+} from 'lucide-react';
 import { HTMLAttributes, type ReactNode, useEffect, useState } from 'react';
 
 import { type Topic } from '#models/index.js';
@@ -124,22 +132,23 @@ export function WindowCardTab({
 }: WindowCardTabProps) {
   const currentTopic = topics?.find((t) => t.id === currentTopicId);
 
+  const showClose = onClose !== undefined;
+  const showMore = topics !== undefined && onTopicChange !== undefined;
   return (
     <div
       className={cn(
         `
-          flex items-center gap-3 border-b border-border px-4 py-3
+          flex items-center gap-3 border-b border-l-4 border-transparent px-4
+          py-2 transition-colors
           last:border-b-0
         `,
         !disabled &&
           onClick &&
           `
-            cursor-pointer transition-colors
+            cursor-pointer
             hover:bg-blue-50
           `,
-        !disabled &&
-          active &&
-          `border-l-4 border-l-blue-500 bg-blue-100 pl-[calc(1rem-4px)]`,
+        !disabled && active && `border-l-blue-500 bg-blue-100`,
         discarded && 'bg-gray-50/50',
       )}
       onClick={
@@ -184,101 +193,108 @@ export function WindowCardTab({
           {getHostname(url)}
         </div>
       </div>
-      {discarded && (
-        <Tooltip>
-          <TooltipTrigger>
-            <CirclePause className="h-3.5 w-3.5 text-muted-foreground" />
-          </TooltipTrigger>
-          <TooltipContent>Suspended</TooltipContent>
-        </Tooltip>
-      )}
-      {lastAccessed && <LastAccessedDisplay timestamp={lastAccessed} />}
-      {/* Actions menu */}
-      {(onClose || (topics && onTopicChange)) && (
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <button
-                type="button"
-                className={cn(
-                  `
-                    flex shrink-0 items-center rounded-md p-1
-                    text-muted-foreground transition-colors
-                  `,
-                  'hover:bg-accent hover:text-foreground',
-                )}
-                onClick={(e) => {
-                  e.stopPropagation();
-                }}
-              />
-            }
-          >
-            <MoreHorizontal className="h-4 w-4" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="end"
+      <TooltipProvider delay={200}>
+        <div className="flex items-center gap-1">
+          {discarded && (
+            <Tooltip>
+              <TooltipTrigger
+                render={<Badge variant="outline" className="bg-background" />}
+              >
+                <CirclePause
+                  className="text-muted-foreground"
+                  data-icon="inline-start"
+                />
+              </TooltipTrigger>
+              <TooltipContent>Suspended</TooltipContent>
+            </Tooltip>
+          )}
+          {lastAccessed && <LastAccessedBadge timestamp={lastAccessed} />}
+        </div>
+        {(showClose || showMore) && (
+          <ButtonGroup
             onClick={(e) => {
               e.stopPropagation();
             }}
           >
-            {/* Topic submenu */}
-            {topics && onTopicChange && (
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger>
-                  <Tag className="h-4 w-4" />
-                  <span>Topic</span>
-                  {currentTopic && (
-                    <span
-                      className="ml-auto h-2.5 w-2.5 rounded-full"
-                      style={{ backgroundColor: currentTopic.color }}
+            {showClose && (
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      variant="outline"
+                      className={`
+                        text-destructive
+                        hover:text-destructive
+                      `}
+                      size="icon-sm"
+                      aria-label="Close tab"
+                      onClick={onClose}
                     />
-                  )}
-                </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent>
-                  <DropdownMenuCheckboxItem
-                    checked={!currentTopicId}
-                    onCheckedChange={() => {
-                      onTopicChange(null);
-                    }}
-                  >
-                    Uncategorized
-                  </DropdownMenuCheckboxItem>
-                  {topics.map((topic) => (
-                    <DropdownMenuCheckboxItem
-                      key={topic.id}
-                      checked={currentTopicId === topic.id}
-                      onCheckedChange={() => {
-                        onTopicChange(topic.id);
-                      }}
-                    >
-                      <span
-                        className="h-2.5 w-2.5 rounded-full"
-                        style={{ backgroundColor: topic.color }}
-                      />
-                      <span className="truncate">{topic.name}</span>
-                    </DropdownMenuCheckboxItem>
-                  ))}
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
-            )}
-            {/* Close tab */}
-            {onClose && (
-              <>
-                {topics && onTopicChange && <DropdownMenuSeparator />}
-                <DropdownMenuItem
-                  variant="destructive"
-                  onClick={() => {
-                    onClose();
-                  }}
+                  }
                 >
-                  <X className="h-4 w-4" />
-                  <span>Close tab</span>
-                </DropdownMenuItem>
-              </>
+                  <XIcon />
+                </TooltipTrigger>
+                <TooltipContent>Close tab</TooltipContent>
+              </Tooltip>
             )}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )}
+            {showMore && (
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={
+                    <Button
+                      variant="outline"
+                      size="icon-sm"
+                      aria-label="More Options"
+                    />
+                  }
+                >
+                  <MoreHorizontalIcon />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {/* Topic submenu */}
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger>
+                      <Tag className="h-4 w-4" />
+                      <span>Topic</span>
+                      {currentTopic && (
+                        <span
+                          className="ml-auto h-2.5 w-2.5 rounded-full"
+                          style={{ backgroundColor: currentTopic.color }}
+                        />
+                      )}
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent>
+                      <DropdownMenuCheckboxItem
+                        checked={!currentTopicId}
+                        onCheckedChange={() => {
+                          onTopicChange(null);
+                        }}
+                      >
+                        Uncategorized
+                      </DropdownMenuCheckboxItem>
+                      {topics.map((topic) => (
+                        <DropdownMenuCheckboxItem
+                          key={topic.id}
+                          checked={currentTopicId === topic.id}
+                          onCheckedChange={() => {
+                            onTopicChange(topic.id);
+                          }}
+                        >
+                          <span
+                            className="h-2.5 w-2.5 rounded-full"
+                            style={{ backgroundColor: topic.color }}
+                          />
+                          <span className="truncate">{topic.name}</span>
+                        </DropdownMenuCheckboxItem>
+                      ))}
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </ButtonGroup>
+        )}
+      </TooltipProvider>
     </div>
   );
 }
@@ -292,7 +308,7 @@ function getHostname(url: string | undefined): string {
   }
 }
 
-function LastAccessedDisplay({ timestamp }: { timestamp: number }) {
+function LastAccessedBadge({ timestamp }: { timestamp: number }) {
   const [now, setNow] = useState(() => Date.now());
 
   // Update `now` periodically so the display stays fresh
@@ -319,15 +335,13 @@ function LastAccessedDisplay({ timestamp }: { timestamp: number }) {
 
   return (
     <Tooltip>
-      <TooltipTrigger>
-        <div className="flex shrink-0 items-center gap-1">
-          <Clock className={cn('h-3.5 w-3.5', clockColor)} />
-          <span className="text-xs text-muted-foreground">
-            {formatLastAccessed(timestamp, now)}
-          </span>
-        </div>
+      <TooltipTrigger
+        render={<Badge variant="outline" className="bg-background" />}
+      >
+        <Clock className={clockColor} data-icon="inline-start" />
+        <span>{formatLastAccessed(timestamp, now)}</span>
       </TooltipTrigger>
-      <TooltipContent side="left">
+      <TooltipContent>
         {new Date(timestamp).toLocaleString(undefined, {
           weekday: 'long',
           year: 'numeric',
