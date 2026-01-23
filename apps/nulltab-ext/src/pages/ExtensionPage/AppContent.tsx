@@ -4,7 +4,6 @@ import {
   useSuspenseQueries,
   useSuspenseQuery,
 } from '@tanstack/react-query';
-import { useVirtualizer } from '@tanstack/react-virtual';
 import { createProxyService } from '@webext-core/proxy-service';
 import { Button } from '@workspace/shadcn/components/button';
 import {
@@ -44,6 +43,7 @@ import {
   WindowCardTabs,
 } from '#components/WindowCard.js';
 import { WindowCardList } from '#components/WindowCardList.js';
+import { useVirtualizer } from '#hooks/useVirtualizer.js';
 import { TabTopicAssignments } from '#models/index.js';
 import { convertTabToTabData, resolveFavIconUrl } from '#utils/tabs.js';
 
@@ -189,13 +189,12 @@ export function AllTabs({
     ScrollRestorationContext,
   );
   const virtualizerScrollElRef = useRef<HTMLDivElement>(null);
-  const virtualizer = useVirtualizer({
+  const { virtualItems, totalSize, measureElement } = useVirtualizer({
     count: filteredTabs.length,
     getScrollElement: () => virtualizerScrollElRef.current,
     estimateSize: () => 61,
     initialOffset: scrollRestorationEntry?.scrollY,
   });
-  const virtualItems = virtualizer.getVirtualItems();
 
   return (
     <div
@@ -214,7 +213,7 @@ export function AllTabs({
         <WindowCard>
           <WindowCardTabs
             className="relative w-full"
-            style={{ height: virtualizer.getTotalSize() }}
+            style={{ height: totalSize }}
           >
             <div
               style={{
@@ -232,7 +231,7 @@ export function AllTabs({
                   <div
                     key={virtualItem.key}
                     data-index={virtualItem.index}
-                    ref={virtualizer.measureElement}
+                    ref={measureElement}
                   >
                     <WindowCardTab
                       title={tab.title}
