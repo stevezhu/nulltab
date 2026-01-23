@@ -22,14 +22,12 @@ export default defineConfig({
       _execute_action: {
         suggested_key: {
           default: 'Ctrl+Shift+Y',
-          mac: 'Command+Shift+Y',
         },
         description: 'Open NullTab popup',
       },
       open_dashboard: {
         suggested_key: {
           default: 'Alt+T',
-          mac: 'Option+T',
         },
         description: 'Open NullTab dashboard',
       },

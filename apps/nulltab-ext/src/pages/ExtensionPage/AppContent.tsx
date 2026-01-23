@@ -45,7 +45,7 @@ import {
 } from '#components/WindowCard.js';
 import { WindowCardList } from '#components/WindowCardList.js';
 import { TabTopicAssignments } from '#models/index.js';
-import { convertTabToTabData, getFavIconUrl } from '#utils/tabs.js';
+import { convertTabToTabData, resolveFavIconUrl } from '#utils/tabs.js';
 
 import { ScrollRestorationContext } from './ScrollRestorationContext';
 
@@ -237,7 +237,7 @@ export function AllTabs({
                     <WindowCardTab
                       title={tab.title}
                       url={tab.url}
-                      favIconUrl={getFavIconUrl(tab.url ?? '')}
+                      favIconUrl={resolveFavIconUrl(tab)}
                       active={tab.active && tab.windowId === currentWindow.id}
                       lastAccessed={tab.lastAccessed}
                       discarded={tab.discarded}
