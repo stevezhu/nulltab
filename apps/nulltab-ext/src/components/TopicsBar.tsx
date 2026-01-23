@@ -1,3 +1,4 @@
+import { ButtonGroup } from '@workspace/shadcn/components/button-group';
 import { ChevronDown } from 'lucide-react';
 import { useMemo } from 'react';
 
@@ -153,7 +154,7 @@ export function TopicsBar({
           <div className="w-5.5" />
         )}
 
-        <div className="ml-auto flex items-center gap-2">
+        <ButtonGroup className="ml-auto">
           <CreateTopicDialog onCreateTopic={onCreateTopic}>
             <CreateTopicButton size="xs" />
           </CreateTopicDialog>
@@ -164,10 +165,10 @@ export function TopicsBar({
               onDeleteTopic={onDeleteTopic}
               onReorderTopics={onReorderTopics}
             >
-              <EditTopicsButton size="xs" />
+              <EditTopicsButton size="icon-xs" />
             </EditTopicsDropdown>
           )}
-        </div>
+        </ButtonGroup>
       </div>
     </div>
   );
