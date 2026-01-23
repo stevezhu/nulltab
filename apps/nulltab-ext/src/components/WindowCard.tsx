@@ -227,12 +227,12 @@ export function WindowCardTab({
                         hover:text-destructive
                       `}
                       size="icon-sm"
-                      aria-label="Close tab"
                       onClick={onClose}
                     />
                   }
                 >
                   <XIcon />
+                  <span className="sr-only">Close tab</span>
                 </TooltipTrigger>
                 <TooltipContent>Close tab</TooltipContent>
               </Tooltip>
@@ -240,15 +240,10 @@ export function WindowCardTab({
             {showMore && (
               <DropdownMenu>
                 <DropdownMenuTrigger
-                  render={
-                    <Button
-                      variant="outline"
-                      size="icon-sm"
-                      aria-label="More Options"
-                    />
-                  }
+                  render={<Button variant="outline" size="icon-sm" />}
                 >
                   <MoreHorizontalIcon />
+                  <span className="sr-only">More options</span>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   {/* Topic submenu */}
