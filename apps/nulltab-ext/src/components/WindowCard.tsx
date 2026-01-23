@@ -138,8 +138,8 @@ export function WindowCardTab({
     <div
       className={cn(
         `
-          flex items-center gap-3 border-b border-l-4 border-transparent px-4
-          py-2 transition-colors
+          flex flex-wrap items-center gap-3 border-b border-l-4
+          border-transparent px-4 py-2 transition-colors
           last:border-b-0
         `,
         !disabled &&
@@ -175,11 +175,15 @@ export function WindowCardTab({
         src={favIconUrl}
         alt="Favicon"
         className={cn('h-4 w-4 shrink-0', discarded && `grayscale`)}
-        // onError={(e) => {
-        //   e.currentTarget.style.display = 'none';
-        // }}
+        onError={(e) => {
+          const el = e.currentTarget;
+          if (el.dataset['fallbackFaviconLoaded'] !== 'true') {
+            el.dataset['fallbackFaviconLoaded'] = 'true';
+            el.src = '/fallback_favicon.bmp';
+          }
+        }}
       />
-      <div className="flex-1">
+      <div className="flex-1 basis-32">
         <div
           className={cn(
             'overflow-hidden text-sm font-medium wrap-anywhere',

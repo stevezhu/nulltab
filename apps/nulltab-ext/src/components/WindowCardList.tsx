@@ -10,7 +10,7 @@ import { FolderInput, Sparkles } from 'lucide-react';
 import { ReactNode, useMemo } from 'react';
 
 import { TabData, WindowData } from '#models/index.js';
-import { getFavIconUrl } from '#utils/tabs.js';
+import { resolveFavIconUrl } from '#utils/tabs.js';
 
 import {
   WindowCard,
@@ -106,7 +106,7 @@ export function WindowCardList({
                     key={tab.id}
                     title={tab.title}
                     url={tab.url}
-                    favIconUrl={getFavIconUrl(tab.url ?? '')}
+                    favIconUrl={resolveFavIconUrl(tab)}
                     active={'active' in tab ? tab.active : undefined}
                     lastAccessed={tab.lastAccessed}
                     discarded={tab.discarded}

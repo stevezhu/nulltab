@@ -180,5 +180,25 @@ export function getFavIconUrl(u: string) {
   const url = new URL(browser.runtime.getURL('/_favicon/'));
   url.searchParams.set('pageUrl', u);
   url.searchParams.set('size', '32');
-  return url.toString();
+  return url;
+}
+
+export function resolveFavIconUrl({
+  url,
+  favIconUrl,
+}: {
+  url?: string;
+  favIconUrl?: string;
+}): string {
+  if (url) {
+    const favIconUrl = getFavIconUrl(url);
+    // XXX: this api is only support in chrome
+    if (favIconUrl.protocol === 'chrome-extension:') {
+      return getFavIconUrl(url).toString();
+    }
+  }
+  if (favIconUrl) {
+    return new URL(favIconUrl).toString();
+  }
+  return '/fallback_favicon.bmp';
 }
