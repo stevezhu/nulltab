@@ -552,6 +552,9 @@ importers:
       eslint-import-resolver-wxt:
         specifier: workspace:*
         version: link:../../packages/eslint-import-resolver-wxt
+      is-path-inside:
+        specifier: ^4.0.0
+        version: 4.0.0
       react-devtools:
         specifier: ^7.0.1
         version: 7.0.1
@@ -561,6 +564,9 @@ importers:
       tailwindcss:
         specifier: 'catalog:'
         version: 4.1.18
+      tinyexec:
+        specifier: ^1.0.2
+        version: 1.0.2
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
