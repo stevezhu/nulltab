@@ -71,11 +71,15 @@ export function useAppCommandDialog(): UseAppCommandDialogReturn {
           label: 'Suspend All Grouped Tabs',
           onSelect: suspendGroupedTabs.mutate,
         },
-        {
-          key: 'open-side-panel',
-          label: 'Open Side Panel',
-          onSelect: () => void openSidePanel(),
-        },
+        ...(import.meta.env.CHROME || import.meta.env.EDGE
+          ? [
+              {
+                key: 'open-side-panel',
+                label: 'Open Side Panel',
+                onSelect: () => void openSidePanel(),
+              },
+            ]
+          : []),
         {
           key: 'open-dashboard',
           label: (

@@ -59,7 +59,7 @@ export function AppCommandDialog({
           }}
         />
         <CommandList>
-          <CommandEmpty>No results found.</CommandEmpty>
+          <CommandEmpty className="px-2">No results found.</CommandEmpty>
           <CommandGroup heading="Commands">
             {commands.map(({ key, label, onSelect }) => {
               return (

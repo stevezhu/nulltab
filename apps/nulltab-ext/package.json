@@ -59,7 +59,6 @@
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
-    "@types/webextension-polyfill": "^0.12.4",
     "@vitejs/plugin-react": "^5.1.2",
     "@wxt-dev/auto-icons": "^1.1.0",
     "@wxt-dev/module-react": "^1.1.5",
