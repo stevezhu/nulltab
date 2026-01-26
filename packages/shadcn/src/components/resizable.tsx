@@ -44,7 +44,7 @@ function ResizableHandle({
           aria-[orientation=horizontal]:after:w-full
           aria-[orientation=horizontal]:after:translate-x-0
           aria-[orientation=horizontal]:after:-translate-y-1/2
-          [&[data-panel-group-direction=vertical]>div]:rotate-90
+          [&[aria-orientation=horizontal]>div]:rotate-90
         `,
         className,
       )}
