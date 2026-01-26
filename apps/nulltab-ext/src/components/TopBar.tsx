@@ -3,13 +3,6 @@ import {
   AutocompleteInput,
 } from '@workspace/shadcn/components/autocomplete';
 import { Button } from '@workspace/shadcn/components/button';
-import {
-  Command,
-  CommandEmpty,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@workspace/shadcn/components/command';
 import { Input } from '@workspace/shadcn/components/input';
 import {
   Select,
@@ -24,14 +17,7 @@ import {
   PanelRight,
   Sparkles,
 } from 'lucide-react';
-import {
-  Activity,
-  ReactNode,
-  Ref,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from 'react';
+import { ReactNode, Ref, useImperativeHandle, useRef } from 'react';
 
 // TODO: rename this
 export type TopBarFilterMode = 'all' | 'ungrouped';
@@ -169,74 +155,6 @@ export function TopBarAutocomplete({
           </AutocompletePopup>
         </AutocompletePositioner> */}
       </Autocomplete>
-    </div>
-  );
-}
-
-export function TopBarCommand({
-  searchQuery,
-  onSearchChange,
-  commands,
-}: {
-  searchQuery: string;
-  onSearchChange: (query: string) => void;
-  commands?: {
-    label: string;
-    onSelect: () => void;
-  }[];
-}) {
-  const [isCommandListOpen, setIsCommandListOpen] = useState(false);
-  return (
-    // XXX: height has here has to match the height of the command component
-    <div className="relative h-[38px] flex-1 basis-[300px]">
-      <Command
-        className={`
-          absolute h-fit max-h-[302px] rounded-lg border shadow-md
-          md:min-w-[450px]
-        `}
-        filter={(value, search) => {
-          if (!search.startsWith('/')) return 0;
-          return Command.defaultFilter(value, search.substring(1));
-        }}
-      >
-        <CommandInput
-          placeholder="Type a command or search..."
-          autoFocus
-          value={searchQuery}
-          onValueChange={(value) => {
-            onSearchChange(value);
-          }}
-          onFocus={() => {
-            setIsCommandListOpen(true);
-          }}
-        />
-        {commands && (
-          <Activity
-            mode={
-              isCommandListOpen && searchQuery.startsWith('/')
-                ? 'visible'
-                : 'hidden'
-            }
-          >
-            <CommandList>
-              <CommandEmpty>No results found.</CommandEmpty>
-              {commands.map(({ label, onSelect }) => {
-                return (
-                  <CommandItem
-                    key={label}
-                    onSelect={() => {
-                      onSelect();
-                      onSearchChange('');
-                    }}
-                  >
-                    <span>{label}</span>
-                  </CommandItem>
-                );
-              })}
-            </CommandList>
-          </Activity>
-        )}
-      </Command>
     </div>
   );
 }

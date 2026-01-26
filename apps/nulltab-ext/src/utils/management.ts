@@ -7,6 +7,10 @@ import { switchTab } from '#utils/tabs.js';
 
 type TabGroup = Browser.tabGroups.TabGroup;
 
+/**
+ * Open the side panel. This is only supported on Chromium-based browsers.
+ * @returns
+ */
 export async function openSidePanel() {
   const currentWindow = await browser.windows.getCurrent();
   if (!currentWindow.id) return;

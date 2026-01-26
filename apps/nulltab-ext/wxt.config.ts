@@ -12,17 +12,16 @@ import viteConfig from './vite.config.js';
 
 // See https://wxt.dev/api/config.html
 export default defineConfig({
-  manifest: ({ mode }) => ({
+  manifest: ({ mode, browser }) => ({
     name: mode === 'development' ? 'NullTab (Dev)' : 'NullTab',
     description:
       'A new browsing experience that replaces tab chaos with intelligent organization.',
     permissions: [
-      'favicon',
       'sessions',
-      'sidePanel',
       'storage',
       'tabGroups',
       'tabs',
+      ...(browser === 'chrome' || browser === 'edge' ? ['favicon'] : []),
     ],
     commands: {
       _execute_action: {
@@ -36,6 +35,14 @@ export default defineConfig({
           default: 'Alt+T',
         },
         description: 'Open NullTab dashboard',
+      },
+    },
+    browser_specific_settings: {
+      gecko: {
+        id: '@nulltab.nulltab',
+        data_collection_permissions: {
+          required: ['none'],
+        },
       },
     },
   }),
