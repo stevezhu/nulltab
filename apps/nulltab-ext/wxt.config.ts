@@ -1,4 +1,5 @@
 /// <reference types="@wxt-dev/module-react" />
+/// <reference types="wxt-turbo" />
 
 import { defineConfig } from 'wxt';
 
@@ -42,16 +43,16 @@ export default defineConfig({
     },
   }),
   imports: false,
-  modules: ['@wxt-dev/auto-icons', './modules/turbo.ts'],
+  modules: ['@wxt-dev/auto-icons', 'wxt-turbo'],
   autoIcons: {
     baseIconPath: 'assets/icon.svg',
   },
   zip: {
-    sourcesRoot: '.output/monorepo-sources/',
     excludeSources: ['.storybook/', '*.stories.*'],
   },
   turbo: {
     packageName,
+    copyFiles: ['SOURCE_CODE_REVIEW.md'],
   },
   vite: () => viteConfig,
 });
