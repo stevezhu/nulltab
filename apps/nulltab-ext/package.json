@@ -36,6 +36,7 @@
     "@webext-core/proxy-service": "^2.0.0",
     "@workspace/shadcn": "workspace:*",
     "@workspace/ui": "workspace:*",
+    "lodash-es": "^4.17.23",
     "lucide-react": "^0.562.0",
     "nanoid": "^5.1.6",
     "react": "catalog:",

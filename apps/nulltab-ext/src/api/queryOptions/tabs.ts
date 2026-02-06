@@ -14,6 +14,10 @@ export const tabsQueryOptions = queryOptions({
 
 export const sortedTabsQueryOptions = queryOptions({
   queryKey: tabsKeys.root,
-  queryFn: () => browser.tabs.query({}),
+  queryFn: async () => {
+    const tabs = await browser.tabs.query({});
+    console.log('tabs', tabs);
+    return tabs;
+  },
   select: (tabs) => sortTabs(tabs),
 });

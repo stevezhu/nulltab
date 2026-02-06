@@ -10,7 +10,7 @@ import { FolderInput, Sparkles } from 'lucide-react';
 import { ReactNode, useMemo } from 'react';
 
 import { TabData, WindowData } from '#models/index.js';
-import { resolveFavIconUrl } from '#utils/tabs.js';
+import { resolveFavIconUrl, suspendTab } from '#utils/tabs.js';
 
 import {
   WindowCard,
@@ -113,6 +113,10 @@ export function WindowCardList({
                     onClick={() => {
                       if (!tab.id) return;
                       onTabClick({ tabId: tab.id });
+                    }}
+                    onSuspend={() => {
+                      if (!tab.id) return;
+                      void suspendTab(tab.id);
                     }}
                   />
                 );

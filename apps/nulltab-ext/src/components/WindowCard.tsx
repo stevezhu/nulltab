@@ -5,6 +5,7 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
@@ -109,6 +110,7 @@ export type WindowCardTabProps = {
   truncateTitle?: boolean;
   onClick?: () => void;
   onClose?: () => void;
+  onSuspend: () => void;
   // Topic-related props
   topics?: Topic[];
   currentTopicId?: string;
@@ -126,6 +128,7 @@ export function WindowCardTab({
   truncateTitle,
   onClick,
   onClose,
+  onSuspend,
   topics,
   currentTopicId,
   onTopicChange,
@@ -249,7 +252,7 @@ export function WindowCardTab({
                   <MoreHorizontalIcon />
                   <span className="sr-only">More options</span>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" className="w-fit">
                   {/* Topic submenu */}
                   <DropdownMenuSub>
                     <DropdownMenuSubTrigger>
@@ -288,6 +291,11 @@ export function WindowCardTab({
                       ))}
                     </DropdownMenuSubContent>
                   </DropdownMenuSub>
+                  {/* Suspend tab option */}
+                  <DropdownMenuItem onClick={onSuspend}>
+                    <CirclePause className="h-4 w-4" />
+                    <span>Suspend tab</span>
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             )}

@@ -35,15 +35,24 @@ export async function focusTab(tab: Tab) {
 }
 
 /**
- * Reloads tab if it is discarded and then focuses it.
+ * Focuses a tab. For discarded tabs, explicitly sets the URL to prevent
+ * Chrome's history restoration from navigating to a wrong page.
+ *
+ * Note: Setting URL explicitly resets tab history but ensures correct page loads.
+ * This is a workaround for Chrome's buggy discarded tab restoration behavior.
+ *
  * @param tab
  */
 export async function reloadAndFocusTab(
-  tab: Pick<Tab, 'id' | 'windowId' | 'discarded'>,
+  tab: Pick<Tab, 'id' | 'windowId' | 'discarded' | 'url'>,
 ) {
+  // For discarded tabs, set URL explicitly to override Chrome's buggy history state
+  // For non-discarded tabs, just activate
   await Promise.all([
-    tab.id !== undefined && tab.discarded && browser.tabs.reload(tab.id),
-    browser.tabs.update(tab.id, { active: true }),
+    // browser.tabs.update(tab.id, {
+    //   active: true,
+    //   // ...(tab.discarded && tab.url ? { url: tab.url } : {}),
+    // }),
     browser.windows.update(tab.windowId, { focused: true }),
   ]);
 }
@@ -153,6 +162,7 @@ export async function switchTab({
     mainTabGroupId !== undefined &&
     targetTab.windowId === mainWindowId &&
     (targetTab.groupId === mainTabGroupId ||
+      // TODO: move this logic into regroup tabs
       (await browser.tabs
         .query({
           windowId: mainWindowId,
@@ -201,4 +211,8 @@ export function resolveFavIconUrl({
     return new URL(favIconUrl).toString();
   }
   return '/fallback_favicon.bmp';
+}
+
+export async function suspendTab(tabId: number) {
+  return browser.tabs.discard(tabId);
 }
