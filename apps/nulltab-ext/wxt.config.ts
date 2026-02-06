@@ -45,6 +45,7 @@ export default defineConfig({
         },
       },
     },
+    host_permissions: ['http://localhost/*', 'http://127.0.0.1:7242'],
   }),
   imports: false,
   modules: ['@wxt-dev/auto-icons'],

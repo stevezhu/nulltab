@@ -15,7 +15,7 @@ import {
 } from '@workspace/shadcn/components/empty';
 import { cn } from '@workspace/shadcn/lib/utils';
 import { Inbox, Search, Tag } from 'lucide-react';
-import { useContext, useMemo, useRef } from 'react';
+import { useContext, useEffect, useMemo, useRef } from 'react';
 import { type Browser, browser } from 'wxt/browser';
 
 import { TABS_SERVICE_KEY } from '#api/proxyService/proxyServiceKeys.js';
@@ -45,7 +45,12 @@ import {
 import { WindowCardList } from '#components/WindowCardList.js';
 import { useVirtualizer } from '#hooks/useVirtualizer.js';
 import { TabTopicAssignments } from '#models/index.js';
-import { convertTabToTabData, resolveFavIconUrl } from '#utils/tabs.js';
+import { getMainTabGroup } from '#utils/management.js';
+import {
+  convertTabToTabData,
+  resolveFavIconUrl,
+  suspendTab,
+} from '#utils/tabs.js';
 
 import { ScrollRestorationContext } from './ScrollRestorationContext';
 
@@ -176,13 +181,31 @@ export function AllTabs({
   const { data: mainTabGroup } = useSuspenseQuery(mainTabGroupQueryOptions);
 
   const { data: sortedTabs } = useSuspenseQuery(sortedTabsQueryOptions);
+  console.log('sortedTabs', sortedTabs);
   const filteredTabs = useMemo(() => {
     const searchFilter = createSearchFilter(searchValue);
     const topicFilter = createTopicFilter({ selectedTopic, tabAssignments });
-    return sortedTabs.filter((tab) =>
+    const f = sortedTabs.filter((tab) =>
       [searchFilter, topicFilter].every((filter) => filter(tab)),
     );
+    return f;
   }, [sortedTabs, searchValue, selectedTopic, tabAssignments]);
+
+  useEffect(() => {
+    console.log('filteredTabs', filteredTabs);
+    void (async () => {
+      const mainTabGroup = await getMainTabGroup();
+      console.log('mainTabGroup', mainTabGroup);
+      const tabs = await browser.tabs.query({
+        windowId: mainTabGroup?.windowId,
+        groupId: browser.tabGroups.TAB_GROUP_ID_NONE,
+      });
+      console.log('main tab group tabs', tabs);
+
+      const tab = await browser.tabs.get(tabs[tabs.length - 1]!.id);
+      console.log('last tab', tab);
+    })();
+  }, [filteredTabs]);
 
   // Virtualizer
   const { scrollRestorationId, scrollRestorationEntry } = useContext(
@@ -226,7 +249,8 @@ export function AllTabs({
             >
               {virtualItems.map((virtualItem) => {
                 const tab = filteredTabs[virtualItem.index];
-                if (!tab) return null;
+                const tabId = tab?.id;
+                if (!tabId) return null;
                 return (
                   <div
                     key={virtualItem.key}
@@ -249,21 +273,19 @@ export function AllTabs({
                         assignTabToTopic.mutate({ tabUrl: tab.url, topicId });
                       }}
                       onClick={() => {
-                        if (
-                          !tab.id ||
-                          !mainTabGroup?.id ||
-                          !mainTabGroup.windowId
-                        )
-                          return;
+                        // TODO: just switch to tab normally instead if mainTabGroup is not set
+                        if (!mainTabGroup?.id || !mainTabGroup.windowId) return;
                         void tabsService.switchTab({
                           mainTabGroupId: mainTabGroup.id,
                           mainWindowId: mainTabGroup.windowId,
-                          tabId: tab.id,
+                          tabId,
                         });
                       }}
                       onClose={() => {
-                        if (!tab.id) return;
-                        void browser.tabs.remove(tab.id);
+                        void browser.tabs.remove(tabId);
+                      }}
+                      onSuspend={() => {
+                        void suspendTab(tabId);
                       }}
                     />
                   </div>
